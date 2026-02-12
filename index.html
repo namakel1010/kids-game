@@ -402,25 +402,35 @@
         }
 
         .nurie-wrap {
+            position: relative;
             width: 100%;
             max-width: 500px;
-            margin-bottom: 15px
+            margin-bottom: 10px;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            background: #fff
         }
 
-        .nurie-svg {
+        .nurie-canvas {
+            display: block;
             width: 100%;
-            cursor: pointer
+            touch-action: none;
+            cursor: crosshair
         }
 
-        .nurie-svg path,
-        .nurie-svg circle,
-        .nurie-svg rect,
-        .nurie-svg polygon,
-        .nurie-svg ellipse {
-            stroke: #444;
-            stroke-width: 2;
-            cursor: pointer;
-            transition: fill .2s
+        .nurie-svg-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none
+        }
+
+        .nurie-svg-overlay svg {
+            width: 100%;
+            height: 100%
         }
 
         .nurie-selector {
@@ -1157,9 +1167,29 @@
         <div class="toolbar">
             <div class="color-palette" id="nurieColors"></div>
         </div>
-        <div class="nurie-wrap" id="nurieArea"></div>
-        <button class="tool-btn" onclick="resetNurie()"
-            style="margin-top:10px;width:auto;padding:10px 20px;font-size:14px">🔄 やりなおす</button>
+        <div class="toolbar">
+            <div class="tool-group">
+                <button class="tool-btn active" data-ntool="pen" onclick="setNurieTool('pen',this)"
+                    title="ペン">✏️</button>
+                <button class="tool-btn" data-ntool="bucket" onclick="setNurieTool('bucket',this)"
+                    title="バケツ">🪣</button>
+                <button class="tool-btn" data-ntool="eraser" onclick="setNurieTool('eraser',this)"
+                    title="けしゴム">🧹</button>
+            </div>
+            <div class="tool-group">
+                <button class="tool-btn" data-nsize="6" onclick="setNurieSize(6,this)" title="ほそい">・</button>
+                <button class="tool-btn active" data-nsize="14" onclick="setNurieSize(14,this)" title="ふつう">●</button>
+                <button class="tool-btn" data-nsize="28" onclick="setNurieSize(28,this)" title="ふとい">⬤</button>
+            </div>
+            <div class="tool-group">
+                <button class="tool-btn" onclick="resetNurie()" title="やりなおす">🔄</button>
+                <button class="tool-btn" onclick="saveNurie()" title="ほぞん">💾</button>
+            </div>
+        </div>
+        <div class="nurie-wrap" id="nurieWrap">
+            <canvas class="nurie-canvas" id="nurieCanvas"></canvas>
+            <div class="nurie-svg-overlay" id="nurieSvgOverlay"></div>
+        </div>
     </div>
 
     <!-- ===== TOKEI SCREEN ===== -->
@@ -1387,11 +1417,11 @@
 
         // ===== NURIE (COLORING) =====
         const NURIE_COLORS = ['#d64545', '#e87d3e', '#e8c94a', '#5cb85c', '#3ea7e8', '#7b68ee', '#e86dab', '#f8c3cd', '#8B4513', '#333', '#87CEEB', '#FFD700', '#FF6347', '#98FB98', '#DDA0DD', '#fff'];
-        let nurieColor = '#d64545';
+        let nurieColor = '#d64545', nurieTool = 'pen', nurieSize = 14, nurieCtx = null, nurieDrawing = false;
         const NURIE_DATA = [
-            { name: '🐼 パンダにんじゃ', svg: `<svg viewBox="0 0 300 300" class="nurie-svg"><ellipse cx="150" cy="170" rx="80" ry="90" fill="#eee" data-part="body"/><circle cx="150" cy="100" r="60" fill="#eee" data-part="head"/><ellipse cx="115" cy="75" rx="22" ry="25" fill="#eee" data-part="ear-l"/><ellipse cx="185" cy="75" rx="22" ry="25" fill="#eee" data-part="ear-r"/><ellipse cx="130" cy="95" rx="18" ry="14" fill="#eee" data-part="eye-l"/><ellipse cx="170" cy="95" rx="18" ry="14" fill="#eee" data-part="eye-r"/><circle cx="130" cy="95" r="5" fill="#111"/><circle cx="170" cy="95" r="5" fill="#111"/><ellipse cx="150" cy="112" rx="8" ry="5" fill="#333"/><path d="M130 125 Q150 138 170 125" fill="none" stroke="#333" stroke-width="2"/><rect x="110" y="160" width="80" height="15" rx="5" fill="#eee" data-part="belt"/><polygon points="150,55 145,40 155,40" fill="#eee" data-part="headband"/><ellipse cx="100" cy="200" rx="18" ry="35" fill="#eee" data-part="arm-l"/><ellipse cx="200" cy="200" rx="18" ry="35" fill="#eee" data-part="arm-r"/><ellipse cx="125" cy="255" rx="22" ry="15" fill="#eee" data-part="foot-l"/><ellipse cx="175" cy="255" rx="22" ry="15" fill="#eee" data-part="foot-r"/></svg>` },
-            { name: '🐰 うさぎにんじゃ', svg: `<svg viewBox="0 0 300 300" class="nurie-svg"><ellipse cx="150" cy="180" rx="65" ry="75" fill="#eee" data-part="body"/><circle cx="150" cy="115" r="50" fill="#eee" data-part="head"/><ellipse cx="125" cy="45" rx="14" ry="40" fill="#eee" data-part="ear-l"/><ellipse cx="175" cy="45" rx="14" ry="40" fill="#eee" data-part="ear-r"/><circle cx="133" cy="108" r="6" fill="#111"/><circle cx="167" cy="108" r="6" fill="#111"/><polygon points="150,120 146,126 154,126" fill="#faa"/><path d="M140 132 Q150 140 160 132" fill="none" stroke="#333" stroke-width="2"/><rect x="115" y="170" width="70" height="12" rx="4" fill="#eee" data-part="belt"/><ellipse cx="95" cy="200" rx="15" ry="30" fill="#eee" data-part="arm-l"/><ellipse cx="205" cy="200" rx="15" ry="30" fill="#eee" data-part="arm-r"/><ellipse cx="130" cy="250" rx="20" ry="12" fill="#eee" data-part="foot-l"/><ellipse cx="170" cy="250" rx="20" ry="12" fill="#eee" data-part="foot-r"/><circle cx="150" cy="255" r="12" fill="#eee" data-part="tail"/></svg>` },
-            { name: '🏯 にんじゃのおしろ', svg: `<svg viewBox="0 0 300 300" class="nurie-svg"><rect x="40" y="180" width="220" height="100" fill="#eee" data-part="wall"/><rect x="80" y="120" width="140" height="70" fill="#eee" data-part="floor2"/><polygon points="150,50 70,120 230,120" fill="#eee" data-part="roof"/><rect x="130" y="220" width="40" height="60" fill="#eee" data-part="door"/><rect x="60" y="200" width="30" height="25" fill="#eee" data-part="win-l"/><rect x="210" y="200" width="30" height="25" fill="#eee" data-part="win-r"/><rect x="100" y="140" width="25" height="20" fill="#eee" data-part="win-2l"/><rect x="175" y="140" width="25" height="20" fill="#eee" data-part="win-2r"/><polygon points="150,50 145,35 155,35" fill="#eee" data-part="flag"/><rect x="0" y="280" width="300" height="20" fill="#eee" data-part="ground"/></svg>` }
+            { name: '🐼 パンダにんじゃ', svg: `<svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg"><ellipse cx="150" cy="170" rx="80" ry="90" fill="none" stroke="#333" stroke-width="3"/><circle cx="150" cy="100" r="60" fill="none" stroke="#333" stroke-width="3"/><ellipse cx="115" cy="75" rx="22" ry="25" fill="none" stroke="#333" stroke-width="3"/><ellipse cx="185" cy="75" rx="22" ry="25" fill="none" stroke="#333" stroke-width="3"/><ellipse cx="130" cy="95" rx="18" ry="14" fill="none" stroke="#333" stroke-width="2"/><ellipse cx="170" cy="95" rx="18" ry="14" fill="none" stroke="#333" stroke-width="2"/><circle cx="130" cy="95" r="5" fill="#111"/><circle cx="170" cy="95" r="5" fill="#111"/><ellipse cx="150" cy="112" rx="8" ry="5" fill="#333"/><path d="M130 125 Q150 138 170 125" fill="none" stroke="#333" stroke-width="2"/><rect x="110" y="160" width="80" height="15" rx="5" fill="none" stroke="#333" stroke-width="2"/><polygon points="150,55 145,40 155,40" fill="none" stroke="#333" stroke-width="2"/><ellipse cx="100" cy="200" rx="18" ry="35" fill="none" stroke="#333" stroke-width="3"/><ellipse cx="200" cy="200" rx="18" ry="35" fill="none" stroke="#333" stroke-width="3"/><ellipse cx="125" cy="255" rx="22" ry="15" fill="none" stroke="#333" stroke-width="3"/><ellipse cx="175" cy="255" rx="22" ry="15" fill="none" stroke="#333" stroke-width="3"/></svg>` },
+            { name: '🐰 うさぎにんじゃ', svg: `<svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg"><ellipse cx="150" cy="180" rx="65" ry="75" fill="none" stroke="#333" stroke-width="3"/><circle cx="150" cy="115" r="50" fill="none" stroke="#333" stroke-width="3"/><ellipse cx="125" cy="45" rx="14" ry="40" fill="none" stroke="#333" stroke-width="3"/><ellipse cx="175" cy="45" rx="14" ry="40" fill="none" stroke="#333" stroke-width="3"/><circle cx="133" cy="108" r="6" fill="#111"/><circle cx="167" cy="108" r="6" fill="#111"/><polygon points="150,120 146,126 154,126" fill="none" stroke="#333" stroke-width="2"/><path d="M140 132 Q150 140 160 132" fill="none" stroke="#333" stroke-width="2"/><rect x="115" y="170" width="70" height="12" rx="4" fill="none" stroke="#333" stroke-width="2"/><ellipse cx="95" cy="200" rx="15" ry="30" fill="none" stroke="#333" stroke-width="3"/><ellipse cx="205" cy="200" rx="15" ry="30" fill="none" stroke="#333" stroke-width="3"/><ellipse cx="130" cy="250" rx="20" ry="12" fill="none" stroke="#333" stroke-width="3"/><ellipse cx="170" cy="250" rx="20" ry="12" fill="none" stroke="#333" stroke-width="3"/><circle cx="150" cy="255" r="12" fill="none" stroke="#333" stroke-width="3"/></svg>` },
+            { name: '🏯 にんじゃのおしろ', svg: `<svg viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg"><rect x="40" y="180" width="220" height="100" fill="none" stroke="#333" stroke-width="3"/><rect x="80" y="120" width="140" height="70" fill="none" stroke="#333" stroke-width="3"/><polygon points="150,50 70,120 230,120" fill="none" stroke="#333" stroke-width="3"/><rect x="130" y="220" width="40" height="60" fill="none" stroke="#333" stroke-width="2"/><rect x="60" y="200" width="30" height="25" fill="none" stroke="#333" stroke-width="2"/><rect x="210" y="200" width="30" height="25" fill="none" stroke="#333" stroke-width="2"/><rect x="100" y="140" width="25" height="20" fill="none" stroke="#333" stroke-width="2"/><rect x="175" y="140" width="25" height="20" fill="none" stroke="#333" stroke-width="2"/><polygon points="150,50 145,35 155,35" fill="none" stroke="#333" stroke-width="2"/><rect x="0" y="280" width="300" height="20" fill="none" stroke="#333" stroke-width="2"/></svg>` }
         ];
         let currentNurie = 0;
         function initNurie() {
@@ -1406,11 +1436,157 @@
             renderNurie();
         }
         function renderNurie() {
-            const area = document.getElementById('nurieArea');
-            area.innerHTML = NURIE_DATA[currentNurie].svg;
-            area.querySelectorAll('[data-part]').forEach(el => { el.addEventListener('click', () => { el.style.fill = nurieColor; state.nurieCount++; if (state.nurieCount % 15 === 0) addStamp(); saveState(); spawnEffect('✨', event.clientX, event.clientY); }); });
+            const cv = document.getElementById('nurieCanvas');
+            const wrap = document.getElementById('nurieWrap');
+            const overlay = document.getElementById('nurieSvgOverlay');
+            const dpr = window.devicePixelRatio || 1;
+            const cssW = Math.min(500, wrap.parentElement.clientWidth - 30);
+            const cssH = cssW;
+            cv.width = cssW * dpr;
+            cv.height = cssH * dpr;
+            cv.style.width = cssW + 'px';
+            cv.style.height = cssH + 'px';
+            nurieCtx = cv.getContext('2d');
+            nurieCtx.scale(dpr, dpr);
+            nurieCtx.fillStyle = '#fff';
+            nurieCtx.fillRect(0, 0, cssW, cssH);
+            nurieCtx.lineCap = 'round';
+            nurieCtx.lineJoin = 'round';
+            // Overlay SVG line art
+            overlay.innerHTML = NURIE_DATA[currentNurie].svg;
+            // Canvas events
+            cv.onpointerdown = nurieStart;
+            cv.onpointermove = nurieDraw;
+            cv.onpointerup = cv.onpointerleave = nurieStop;
         }
+        function nurieGetPos(e) {
+            const cv = document.getElementById('nurieCanvas');
+            const r = cv.getBoundingClientRect();
+            const scaleX = cv.offsetWidth / r.width;
+            return { x: (e.clientX - r.left) * scaleX, y: (e.clientY - r.top) * scaleX };
+        }
+        function nurieFloodFill(cx, cy, fillColor) {
+            const cv = document.getElementById('nurieCanvas');
+            const w = cv.width, h = cv.height;
+            const dpr = window.devicePixelRatio || 1;
+            // Composite: draw SVG lines onto a temp canvas with the painting to detect boundaries
+            const tmpCv = document.createElement('canvas'); tmpCv.width = w; tmpCv.height = h;
+            const tmpCtx = tmpCv.getContext('2d');
+            tmpCtx.drawImage(cv, 0, 0);
+            // Render SVG overlay onto the same temp canvas for boundary detection
+            const svgEl = document.getElementById('nurieSvgOverlay').querySelector('svg');
+            if (svgEl) {
+                const svgData = new XMLSerializer().serializeToString(svgEl);
+                const img = new Image();
+                const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                img.onload = function () {
+                    tmpCtx.drawImage(img, 0, 0, w, h);
+                    URL.revokeObjectURL(url);
+                    doNurieFill(cv, tmpCv, cx, cy, fillColor, dpr);
+                };
+                img.src = url;
+            }
+        }
+        function doNurieFill(cv, tmpCv, cx, cy, fillColor, dpr) {
+            const w = cv.width, h = cv.height;
+            const px = Math.round(cx * dpr), py = Math.round(cy * dpr);
+            if (px < 0 || px >= w || py < 0 || py >= h) return;
+            const compositeData = tmpCv.getContext('2d').getImageData(0, 0, w, h);
+            const cData = compositeData.data;
+            const paintData = nurieCtx.getImageData(0, 0, w, h);
+            const pData = paintData.data;
+            const idx = (py * w + px) * 4;
+            const tR = cData[idx], tG = cData[idx + 1], tB = cData[idx + 2], tA = cData[idx + 3];
+            const tmp2 = document.createElement('canvas'); tmp2.width = tmp2.height = 1;
+            const t2 = tmp2.getContext('2d'); t2.fillStyle = fillColor; t2.fillRect(0, 0, 1, 1);
+            const fc = t2.getImageData(0, 0, 1, 1).data;
+            const fR = fc[0], fG = fc[1], fB = fc[2], fA = fc[3];
+            if (Math.abs(tR - fR) < 3 && Math.abs(tG - fG) < 3 && Math.abs(tB - fB) < 3) return;
+            const tolerance = 40;
+            function match(i) {
+                return Math.abs(cData[i] - tR) <= tolerance && Math.abs(cData[i + 1] - tG) <= tolerance && Math.abs(cData[i + 2] - tB) <= tolerance;
+            }
+            function setPixel(i) { pData[i] = fR; pData[i + 1] = fG; pData[i + 2] = fB; pData[i + 3] = fA; }
+            const stack = [[px, py]];
+            const visited = new Uint8Array(w * h);
+            while (stack.length > 0) {
+                let [x, y] = stack.pop();
+                let i = (y * w + x) * 4;
+                if (!match(i) || visited[y * w + x]) continue;
+                let lx = x;
+                while (lx > 0 && match((y * w + lx - 1) * 4) && !visited[y * w + lx - 1]) lx--;
+                let rx = x;
+                while (rx < w - 1 && match((y * w + rx + 1) * 4) && !visited[y * w + rx + 1]) rx++;
+                let prevAbove = false, prevBelow = false;
+                for (let fx = lx; fx <= rx; fx++) {
+                    const fi = (y * w + fx) * 4;
+                    setPixel(fi);
+                    visited[y * w + fx] = 1;
+                    if (y > 0) { const ai = ((y - 1) * w + fx) * 4; if (match(ai) && !visited[(y - 1) * w + fx]) { if (!prevAbove) { stack.push([fx, y - 1]); prevAbove = true; } } else { prevAbove = false; } }
+                    if (y < h - 1) { const bi = ((y + 1) * w + fx) * 4; if (match(bi) && !visited[(y + 1) * w + fx]) { if (!prevBelow) { stack.push([fx, y + 1]); prevBelow = true; } } else { prevBelow = false; } }
+                }
+            }
+            nurieCtx.putImageData(paintData, 0, 0);
+            state.nurieCount++; if (state.nurieCount % 15 === 0) addStamp(); saveState();
+        }
+        function nurieStart(e) {
+            if (nurieTool === 'bucket') { const p = nurieGetPos(e); nurieFloodFill(p.x, p.y, nurieColor); return; }
+            nurieDrawing = true;
+            const dpr = window.devicePixelRatio || 1;
+            nurieCtx.save();
+            nurieCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            nurieCtx.beginPath();
+            const p = nurieGetPos(e);
+            nurieCtx.moveTo(p.x, p.y);
+            nurieCtx.restore();
+        }
+        function nurieDraw(e) {
+            if (!nurieDrawing) return;
+            const dpr = window.devicePixelRatio || 1;
+            nurieCtx.save();
+            nurieCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            nurieCtx.lineCap = 'round';
+            nurieCtx.lineJoin = 'round';
+            nurieCtx.strokeStyle = nurieTool === 'eraser' ? '#fff' : nurieColor;
+            nurieCtx.lineWidth = nurieTool === 'eraser' ? nurieSize * 2 : nurieSize;
+            const p = nurieGetPos(e);
+            nurieCtx.lineTo(p.x, p.y);
+            nurieCtx.stroke();
+            nurieCtx.restore();
+        }
+        function nurieStop() {
+            nurieDrawing = false;
+            state.nurieCount++; if (state.nurieCount % 15 === 0) addStamp(); saveState();
+        }
+        function setNurieTool(t, btn) { nurieTool = t; document.querySelectorAll('.tool-btn[data-ntool]').forEach(b => b.classList.remove('active')); btn.classList.add('active'); }
+        function setNurieSize(s, btn) { nurieSize = s; document.querySelectorAll('.tool-btn[data-nsize]').forEach(b => b.classList.remove('active')); btn.classList.add('active'); }
         function resetNurie() { renderNurie(); }
+        function saveNurie() {
+            // Composite canvas + SVG for saving
+            const cv = document.getElementById('nurieCanvas');
+            const dpr = window.devicePixelRatio || 1;
+            const tmpCv = document.createElement('canvas'); tmpCv.width = cv.width; tmpCv.height = cv.height;
+            const tmpCtx = tmpCv.getContext('2d');
+            tmpCtx.drawImage(cv, 0, 0);
+            const svgEl = document.getElementById('nurieSvgOverlay').querySelector('svg');
+            if (svgEl) {
+                const svgData = new XMLSerializer().serializeToString(svgEl);
+                const img = new Image();
+                const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                img.onload = function () {
+                    tmpCtx.drawImage(img, 0, 0, cv.width, cv.height);
+                    URL.revokeObjectURL(url);
+                    const a = document.createElement('a');
+                    a.download = (getPlayerName() || 'ぬりえ') + 'のぬりえ.png';
+                    a.href = tmpCv.toDataURL();
+                    a.click();
+                    addStamp();
+                };
+                img.src = url;
+            }
+        }
 
         // ===== TOKEI (CLOCK) =====
         let clockLevel = 1, clockAnswer = 0, isDragging = false, dragHand = null;
