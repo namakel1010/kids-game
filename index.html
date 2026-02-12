@@ -1310,8 +1310,67 @@
             cv.onpointerdown = startDraw; cv.onpointermove = draw; cv.onpointerup = cv.onpointerleave = stopDraw;
         }
         function getPos(e) { const r = e.target.getBoundingClientRect(); const scaleX = e.target.offsetWidth / r.width; return { x: (e.clientX - r.left) * scaleX, y: (e.clientY - r.top) * scaleX }; }
+        function floodFill(cx, cy, fillColor) {
+            const cv = document.getElementById('drawCanvas');
+            const w = cv.width, h = cv.height;
+            const dpr = window.devicePixelRatio || 1;
+            const px = Math.round(cx * dpr), py = Math.round(cy * dpr);
+            if (px < 0 || px >= w || py < 0 || py >= h) return;
+            const imageData = ctx.getImageData(0, 0, w, h);
+            const data = imageData.data;
+            const idx = (py * w + px) * 4;
+            const tR = data[idx], tG = data[idx + 1], tB = data[idx + 2], tA = data[idx + 3];
+            // Parse fill color
+            const tmp = document.createElement('canvas'); tmp.width = tmp.height = 1;
+            const tCtx = tmp.getContext('2d'); tCtx.fillStyle = fillColor; tCtx.fillRect(0, 0, 1, 1);
+            const fc = tCtx.getImageData(0, 0, 1, 1).data;
+            const fR = fc[0], fG = fc[1], fB = fc[2], fA = fc[3];
+            // Don't fill if target is same as fill color
+            if (Math.abs(tR - fR) < 3 && Math.abs(tG - fG) < 3 && Math.abs(tB - fB) < 3 && Math.abs(tA - fA) < 3) return;
+            const tolerance = 32;
+            function match(i) {
+                return Math.abs(data[i] - tR) <= tolerance && Math.abs(data[i + 1] - tG) <= tolerance && Math.abs(data[i + 2] - tB) <= tolerance && Math.abs(data[i + 3] - tA) <= tolerance;
+            }
+            function setPixel(i) { data[i] = fR; data[i + 1] = fG; data[i + 2] = fB; data[i + 3] = fA; }
+            // Scanline flood fill
+            const stack = [[px, py]];
+            const visited = new Uint8Array(w * h);
+            while (stack.length > 0) {
+                let [x, y] = stack.pop();
+                let i = (y * w + x) * 4;
+                if (!match(i)) continue;
+                // Find left boundary
+                let lx = x;
+                while (lx > 0 && match((y * w + lx - 1) * 4)) lx--;
+                // Find right boundary
+                let rx = x;
+                while (rx < w - 1 && match((y * w + rx + 1) * 4)) rx++;
+                // Fill the line and check above/below
+                let prevAbove = false, prevBelow = false;
+                for (let fx = lx; fx <= rx; fx++) {
+                    const fi = (y * w + fx) * 4;
+                    setPixel(fi);
+                    visited[y * w + fx] = 1;
+                    // Check above
+                    if (y > 0) {
+                        const ai = ((y - 1) * w + fx) * 4;
+                        if (match(ai) && !visited[(y - 1) * w + fx]) {
+                            if (!prevAbove) { stack.push([fx, y - 1]); prevAbove = true; }
+                        } else { prevAbove = false; }
+                    }
+                    // Check below
+                    if (y < h - 1) {
+                        const bi = ((y + 1) * w + fx) * 4;
+                        if (match(bi) && !visited[(y + 1) * w + fx]) {
+                            if (!prevBelow) { stack.push([fx, y + 1]); prevBelow = true; }
+                        } else { prevBelow = false; }
+                    }
+                }
+            }
+            ctx.putImageData(imageData, 0, 0);
+        }
         function startDraw(e) {
-            if (tool === 'bucket') { const cv = document.getElementById('drawCanvas'); const cssW = parseInt(cv.style.width); const cssH = parseInt(cv.style.height); ctx.fillStyle = penColor; ctx.fillRect(0, 0, cssW, cssH); return; }
+            if (tool === 'bucket') { const p = getPos(e); floodFill(p.x, p.y, penColor); return; }
             if (tool === 'stamp') { const p = getPos(e); ctx.font = penSize * 3 + 'px serif'; ctx.fillText(currentStamp, p.x - penSize, p.y + penSize); return; }
             drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y);
         }
