@@ -3,8 +3,9 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>りっちゃんの にんじゃスクール 🥷</title>
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>にんじゃスクール 🥷</title>
     <!-- PWA & iOS -->
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -928,6 +929,108 @@
             color: white
         }
 
+        /* ===== SETUP SCREEN ===== */
+        #setup {
+            background: linear-gradient(135deg, #f7f0e8 0%, #f0e6f6 50%, #e8f4ee 100%);
+            text-align: center;
+            justify-content: center;
+            gap: 20px;
+            position: relative
+        }
+
+        .setup-card {
+            background: white;
+            border-radius: 24px;
+            padding: 30px 25px;
+            box-shadow: var(--shadow);
+            max-width: 400px;
+            width: 90%;
+            text-align: center
+        }
+
+        .setup-card h2 {
+            font-size: clamp(20px, 4vw, 28px);
+            font-weight: 900;
+            color: var(--dark);
+            margin-bottom: 8px
+        }
+
+        .setup-card p {
+            font-size: clamp(13px, 2.5vw, 16px);
+            color: #7a6b6b;
+            margin-bottom: 20px
+        }
+
+        .name-input {
+            font-family: inherit;
+            font-size: 20px;
+            font-weight: 700;
+            text-align: center;
+            padding: 14px 20px;
+            border: 3px solid var(--sakura);
+            border-radius: 16px;
+            width: 80%;
+            max-width: 260px;
+            outline: none;
+            color: var(--dark);
+            transition: border-color .3s
+        }
+
+        .name-input:focus {
+            border-color: var(--fuji)
+        }
+
+        .name-input::placeholder {
+            color: #ccc;
+            font-weight: 400
+        }
+
+        .setup-btn {
+            margin-top: 20px;
+            padding: 14px 40px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, var(--sakura), var(--fuji));
+            color: white;
+            font-size: 18px;
+            font-weight: 900;
+            box-shadow: var(--shadow);
+            transition: transform .2s, opacity .2s;
+            display: block;
+            margin-left: auto;
+            margin-right: auto
+        }
+
+        .setup-btn:disabled {
+            opacity: .4;
+            cursor: not-allowed
+        }
+
+        .setup-btn:not(:disabled):active {
+            transform: scale(.95)
+        }
+
+        /* ===== SETTINGS BUTTON ===== */
+        .settings-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .1);
+            transition: transform .2s;
+            z-index: 10
+        }
+
+        .settings-btn:active {
+            transform: scale(.9)
+        }
+
         /* ===== RESPONSIVE ===== */
         @media(max-width:480px) {
             .mode-grid {
@@ -960,10 +1063,22 @@
     <!-- ===== SAKURA PARTICLES ===== -->
     <div id="sakuraContainer"></div>
 
+    <!-- ===== SETUP SCREEN ===== -->
+    <div id="setup" class="screen">
+        <div class="home-character">🥷</div>
+        <div class="setup-card">
+            <h2>ようこそ！にんじゃスクール</h2>
+            <p>まずは おなまえを おしえてね🌸</p>
+            <input type="text" class="name-input" id="nameInput" placeholder="なまえ" maxlength="10" autocomplete="off">
+            <button class="setup-btn" id="setupBtn" disabled onclick="saveName()">はじめる！🥷</button>
+        </div>
+    </div>
+
     <!-- ===== HOME SCREEN ===== -->
-    <div id="home" class="screen active">
+    <div id="home" class="screen">
+        <button class="settings-btn" onclick="showScreen('setup')" title="おなまえ へんこう">⚙️</button>
         <div class="home-character" id="homeChar">🥷</div>
-        <div class="home-speech">りっちゃん、きょうは<br>どのしゅぎょうにする？🌸</div>
+        <div class="home-speech" id="homeSpeech"></div>
         <h1 class="home-title">にんじゃスクール</h1>
         <p class="home-subtitle">CryptoNinja の せかいで たのしく まなぼう！</p>
         <div class="mode-grid">
@@ -1206,7 +1321,7 @@
         function setTool(t, btn) { tool = t; document.querySelectorAll('.tool-group .tool-btn[data-tool]').forEach(b => b.classList.remove('active')); btn.classList.add('active'); document.getElementById('stampBar').style.display = t === 'stamp' ? 'flex' : 'none'; }
         function setSize(s) { penSize = s; }
         function clearCanvas() { const cv = document.getElementById('drawCanvas'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height); }
-        function saveDrawing() { const cv = document.getElementById('drawCanvas'); const a = document.createElement('a'); a.download = 'りっちゃんのえ.png'; a.href = cv.toDataURL(); a.click(); addStamp(); }
+        function saveDrawing() { const cv = document.getElementById('drawCanvas'); const a = document.createElement('a'); a.download = (getPlayerName() || 'おえかき') + 'のえ.png'; a.href = cv.toDataURL(); a.click(); addStamp(); }
 
         // ===== NURIE (COLORING) =====
         const NURIE_COLORS = ['#d64545', '#e87d3e', '#e8c94a', '#5cb85c', '#3ea7e8', '#7b68ee', '#e86dab', '#f8c3cd', '#8B4513', '#333', '#87CEEB', '#FFD700', '#FF6347', '#98FB98', '#DDA0DD', '#fff'];
@@ -1326,7 +1441,7 @@
         function checkAnswer(correct, btn) {
             const rm = document.getElementById('resultMsg');
             if (correct) {
-                rm.textContent = '🌟 すごい！りっちゃん！せいかい！🌟'; rm.style.color = getComputedStyle(document.documentElement).getPropertyValue('--wakatake');
+                rm.textContent = '🌟 すごい！' + getPlayerName() + '！せいかい！🌟'; rm.style.color = getComputedStyle(document.documentElement).getPropertyValue('--wakatake');
                 state.tokeiCorrect++;
                 if (state.tokeiCorrect >= 3 && state.tokeiLevel < 2) { state.tokeiLevel = 2; updateLevelTabs(); }
                 if (state.tokeiCorrect >= 8 && state.tokeiLevel < 3) { state.tokeiLevel = 3; updateLevelTabs(); }
@@ -1798,8 +1913,42 @@
             document.getElementById('progressFill').style.width = Math.min(progress, 100) + '%';
         }
 
+        // ===== NAME MANAGEMENT =====
+        const NAME_KEY = 'ninjaSchoolName';
+        function getPlayerName() { return localStorage.getItem(NAME_KEY) || ''; }
+        function applyName() {
+            const name = getPlayerName();
+            document.getElementById('homeSpeech').innerHTML = name + '、きょうは<br>どのしゅぎょうにする？🌸';
+            document.title = name + 'の にんじゃスクール 🥷';
+        }
+        function saveName() {
+            const input = document.getElementById('nameInput');
+            const name = input.value.trim();
+            if (!name) return;
+            localStorage.setItem(NAME_KEY, name);
+            applyName();
+            showScreen('home');
+        }
+        // Setup screen input handling
+        document.getElementById('nameInput').addEventListener('input', function () {
+            document.getElementById('setupBtn').disabled = !this.value.trim();
+        });
+        // Enter key support
+        document.getElementById('nameInput').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && this.value.trim()) saveName();
+        });
+
         // ===== INIT =====
-        updateRank();
+        (function init() {
+            const name = getPlayerName();
+            if (name) {
+                applyName();
+                document.getElementById('home').classList.add('active');
+            } else {
+                document.getElementById('setup').classList.add('active');
+            }
+            updateRank();
+        })();
     </script>
 </body>
 
