@@ -1,0 +1,1806 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>りっちゃんの にんじゃスクール 🥷</title>
+    <!-- PWA & iOS -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="にんじゃスクール">
+    <link rel="apple-touch-icon" href="images/icon-192.png">
+    <meta name="theme-color" content="#f7f0e8">
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700;900&display=swap"
+        rel="stylesheet">
+    <style>
+        /* ===== RESET & BASE ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: 'Zen Maru Gothic', sans-serif;
+            background: #f7f0e8;
+            overflow-x: hidden;
+            min-height: 100vh;
+            min-height: 100dvh;
+            overscroll-behavior: none;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)
+        }
+
+        button {
+            font-family: inherit;
+            cursor: pointer;
+            border: none;
+            outline: none
+        }
+
+        /* ===== CSS VARIABLES ===== */
+        :root {
+            --fuji: #b8a9c9;
+            --sakura: #f8c3cd;
+            --wakatake: #7bc8a4;
+            --gold: #c9a84c;
+            --dark: #3a2e2e;
+            --cream: #faf5eb;
+            --red: #d64545;
+            --shadow: 0 4px 15px rgba(0, 0, 0, .12);
+        }
+
+        /* ===== SAKURA PARTICLES ===== */
+        .sakura {
+            position: fixed;
+            top: -20px;
+            font-size: 18px;
+            opacity: .7;
+            pointer-events: none;
+            z-index: 0;
+            animation: fall linear infinite
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(-20px) rotate(0deg)
+            }
+
+            100% {
+                transform: translateY(105vh) rotate(720deg)
+            }
+        }
+
+        /* ===== SCREENS ===== */
+        .screen {
+            display: none;
+            width: 100%;
+            min-height: 100vh;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px
+        }
+
+        .screen.active {
+            display: flex
+        }
+
+        /* ===== HOME SCREEN ===== */
+        #home {
+            background: linear-gradient(135deg, #f7f0e8 0%, #f0e6f6 50%, #e8f4ee 100%);
+            text-align: center;
+            justify-content: center;
+            gap: 20px;
+            position: relative
+        }
+
+        .home-title {
+            font-size: clamp(28px, 6vw, 48px);
+            font-weight: 900;
+            color: var(--dark);
+            text-shadow: 2px 2px 0 var(--sakura);
+            margin-bottom: 5px
+        }
+
+        .home-subtitle {
+            font-size: clamp(14px, 3vw, 20px);
+            color: #7a6b6b;
+            margin-bottom: 20px
+        }
+
+        .home-character {
+            width: 120px;
+            height: 120px;
+            background: var(--fuji);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            margin: 0 auto 10px;
+            box-shadow: var(--shadow);
+            animation: bounce 2s ease-in-out infinite
+        }
+
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: translateY(0)
+            }
+
+            50% {
+                transform: translateY(-10px)
+            }
+        }
+
+        .home-speech {
+            background: white;
+            border-radius: 20px;
+            padding: 12px 20px;
+            font-size: clamp(14px, 3vw, 18px);
+            color: var(--dark);
+            box-shadow: var(--shadow);
+            max-width: 350px;
+            margin: 0 auto 25px;
+            position: relative
+        }
+
+        .home-speech::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 10px solid transparent;
+            border-top-color: white
+        }
+
+        /* ===== MODE CARDS ===== */
+        .mode-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            width: 100%;
+            max-width: 600px;
+            padding: 0 10px
+        }
+
+        .mode-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px 15px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: transform .2s, box-shadow .2s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden
+        }
+
+        @media (hover: hover) {
+            .mode-card:hover {
+                transform: translateY(-5px) scale(1.03);
+                box-shadow: 0 8px 25px rgba(0, 0, 0, .18)
+            }
+        }
+
+        .mode-card:active {
+            transform: scale(.97)
+        }
+
+        .mode-card .icon {
+            font-size: 45px;
+            margin-bottom: 8px;
+            display: block
+        }
+
+        .mode-card .label {
+            font-size: clamp(13px, 2.5vw, 16px);
+            font-weight: 700;
+            color: var(--dark)
+        }
+
+        .mode-card .teacher {
+            font-size: 11px;
+            color: #999;
+            margin-top: 4px
+        }
+
+        .mode-card:nth-child(1) {
+            border-top: 4px solid var(--sakura)
+        }
+
+        .mode-card:nth-child(2) {
+            border-top: 4px solid var(--fuji)
+        }
+
+        .mode-card:nth-child(3) {
+            border-top: 4px solid var(--wakatake)
+        }
+
+        .mode-card:nth-child(4) {
+            border-top: 4px solid var(--gold)
+        }
+
+        /* ===== TOP BAR ===== */
+        .top-bar {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 0;
+            margin-bottom: 15px
+        }
+
+        .back-btn {
+            background: white;
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow);
+            transition: transform .2s
+        }
+
+        @media (hover: hover) {
+            .back-btn:hover {
+                transform: scale(1.1)
+            }
+        }
+
+        .mode-title {
+            font-size: clamp(18px, 4vw, 26px);
+            font-weight: 900;
+            color: var(--dark)
+        }
+
+        .rank-badge {
+            background: var(--gold);
+            color: white;
+            border-radius: 12px;
+            padding: 4px 12px;
+            font-size: 12px;
+            font-weight: 700
+        }
+
+        /* ===== OEKAKI (DRAWING) ===== */
+        #oekaki {
+            background: linear-gradient(180deg, #fff5f5 0%, #faf5eb 100%)
+        }
+
+        .canvas-wrap {
+            background: white;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            padding: 8px;
+            width: 100%;
+            max-width: 700px;
+            margin-bottom: 15px;
+            position: relative
+        }
+
+        #drawCanvas {
+            width: 100%;
+            border-radius: 12px;
+            display: block;
+            touch-action: none
+        }
+
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            width: 100%;
+            max-width: 700px;
+            margin-bottom: 10px
+        }
+
+        .color-palette {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 8px 12px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow)
+        }
+
+        .color-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            transition: transform .2s, border-color .2s;
+            cursor: pointer
+        }
+
+        .color-btn.active {
+            border-color: var(--dark);
+            transform: scale(1.2)
+        }
+
+        .tool-group {
+            display: flex;
+            gap: 6px;
+            padding: 8px 12px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow)
+        }
+
+        .tool-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--cream);
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background .2s, transform .2s
+        }
+
+        @media (hover: hover) {
+            .tool-btn:hover {
+                background: var(--sakura);
+                transform: scale(1.1)
+            }
+        }
+
+        .tool-btn.active {
+            background: var(--sakura)
+        }
+
+        .stamp-palette {
+            display: flex;
+            gap: 6px;
+            padding: 8px 12px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow)
+        }
+
+        .stamp-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            font-size: 22px;
+            background: var(--cream);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform .2s
+        }
+
+        @media (hover: hover) {
+            .stamp-btn:hover {
+                transform: scale(1.2)
+            }
+        }
+
+        .stamp-btn.active {
+            background: var(--wakatake);
+            color: white
+        }
+
+        /* ===== NURIE (COLORING) ===== */
+        #nurie {
+            background: linear-gradient(180deg, #f5f0ff 0%, #faf5eb 100%)
+        }
+
+        .nurie-wrap {
+            width: 100%;
+            max-width: 500px;
+            margin-bottom: 15px
+        }
+
+        .nurie-svg {
+            width: 100%;
+            cursor: pointer
+        }
+
+        .nurie-svg path,
+        .nurie-svg circle,
+        .nurie-svg rect,
+        .nurie-svg polygon,
+        .nurie-svg ellipse {
+            stroke: #444;
+            stroke-width: 2;
+            cursor: pointer;
+            transition: fill .2s
+        }
+
+        .nurie-selector {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 15px
+        }
+
+        .nurie-select-btn {
+            padding: 10px 18px;
+            border-radius: 12px;
+            background: white;
+            font-size: 14px;
+            font-weight: 700;
+            box-shadow: var(--shadow);
+            transition: transform .2s
+        }
+
+        @media (hover: hover) {
+            .nurie-select-btn:hover {
+                transform: scale(1.05)
+            }
+        }
+
+        .nurie-select-btn.active {
+            background: var(--fuji);
+            color: white
+        }
+
+        /* ===== TOKEI (CLOCK) ===== */
+        #tokei {
+            background: linear-gradient(180deg, #e8f8ee 0%, #faf5eb 100%)
+        }
+
+        .clock-area {
+            width: 100%;
+            max-width: 400px;
+            text-align: center
+        }
+
+        .clock-container {
+            position: relative;
+            width: 280px;
+            height: 280px;
+            margin: 0 auto 20px
+        }
+
+        .clock-face {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: white;
+            border: 6px solid var(--wakatake);
+            box-shadow: var(--shadow);
+            position: relative
+        }
+
+        .clock-number {
+            position: absolute;
+            font-size: 20px;
+            font-weight: 900;
+            color: var(--dark);
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center
+        }
+
+        .clock-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 12px;
+            height: 12px;
+            background: var(--dark);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 5
+        }
+
+        .clock-hand {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform-origin: bottom center;
+            border-radius: 4px
+        }
+
+        .hour-hand {
+            width: 6px;
+            height: 70px;
+            background: var(--dark);
+            z-index: 3;
+            transform: translateX(-50%) rotate(0deg)
+        }
+
+        .minute-hand {
+            width: 4px;
+            height: 95px;
+            background: var(--red);
+            z-index: 4;
+            transform: translateX(-50%) rotate(0deg)
+        }
+
+        .clock-hand.draggable {
+            cursor: grab
+        }
+
+        .clock-hand.dragging {
+            cursor: grabbing
+        }
+
+        .question-text {
+            font-size: clamp(18px, 4vw, 26px);
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 15px;
+            min-height: 40px
+        }
+
+        .choices {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 15px
+        }
+
+        .choice-btn {
+            padding: 14px 28px;
+            border-radius: 14px;
+            background: white;
+            font-size: clamp(16px, 3.5vw, 22px);
+            font-weight: 700;
+            box-shadow: var(--shadow);
+            transition: transform .2s, background .2s;
+            min-width: 80px
+        }
+
+        @media (hover: hover) {
+            .choice-btn:hover {
+                transform: scale(1.05);
+                background: var(--wakatake);
+                color: white
+            }
+        }
+
+        .level-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px
+        }
+
+        .level-tab {
+            padding: 8px 16px;
+            border-radius: 10px;
+            background: white;
+            font-size: 13px;
+            font-weight: 700;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .08);
+            transition: all .2s
+        }
+
+        .level-tab.active {
+            background: var(--wakatake);
+            color: white
+        }
+
+        .level-tab.locked {
+            opacity: .5;
+            cursor: not-allowed
+        }
+
+        .result-msg {
+            font-size: 20px;
+            font-weight: 700;
+            min-height: 35px;
+            margin-bottom: 10px
+        }
+
+        .next-btn {
+            padding: 12px 30px;
+            border-radius: 14px;
+            background: var(--wakatake);
+            color: white;
+            font-size: 16px;
+            font-weight: 700;
+            box-shadow: var(--shadow);
+            transition: transform .2s;
+            display: none
+        }
+
+        .next-btn:hover {
+            transform: scale(1.05)
+        }
+
+        /* ===== STAMP RALLY ===== */
+        #stamps {
+            background: linear-gradient(180deg, #fdf6e3 0%, #faf5eb 100%)
+        }
+
+        .stamp-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 20px
+        }
+
+        .stamp-cell {
+            aspect-ratio: 1;
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            position: relative
+        }
+
+        .stamp-cell.earned {
+            background: linear-gradient(135deg, var(--gold), #e8c94a);
+            animation: stampPop .5s ease
+        }
+
+        .stamp-cell.empty {
+            opacity: .4
+        }
+
+        @keyframes stampPop {
+            0% {
+                transform: scale(0) rotate(-180deg)
+            }
+
+            60% {
+                transform: scale(1.2) rotate(10deg)
+            }
+
+            100% {
+                transform: scale(1) rotate(0)
+            }
+        }
+
+        .rank-display {
+            text-align: center;
+            margin-bottom: 20px
+        }
+
+        .rank-title {
+            font-size: 14px;
+            color: #999
+        }
+
+        .rank-name {
+            font-size: clamp(24px, 5vw, 36px);
+            font-weight: 900;
+            color: var(--gold)
+        }
+
+        .progress-bar {
+            width: 100%;
+            max-width: 400px;
+            height: 16px;
+            background: #eee;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--wakatake), var(--gold));
+            border-radius: 8px;
+            transition: width .5s ease
+        }
+
+        /* ===== EFFECTS ===== */
+        .shuriken-effect {
+            position: fixed;
+            pointer-events: none;
+            z-index: 999;
+            font-size: 30px;
+            animation: shurikenSpin 1s ease-out forwards
+        }
+
+        @keyframes shurikenSpin {
+            0% {
+                transform: scale(0) rotate(0);
+                opacity: 1
+            }
+
+            50% {
+                transform: scale(1.5) rotate(360deg);
+                opacity: 1
+            }
+
+            100% {
+                transform: scale(0) rotate(720deg);
+                opacity: 0
+            }
+        }
+
+        .sparkle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 999;
+            font-size: 16px;
+            animation: sparkleAnim .8s ease-out forwards
+        }
+
+        @keyframes sparkleAnim {
+            0% {
+                transform: scale(0) translateY(0);
+                opacity: 1
+            }
+
+            100% {
+                transform: scale(1) translateY(-40px);
+                opacity: 0
+            }
+        }
+
+        /* ===== MOJI (HIRAGANA TRACE) ===== */
+        #moji {
+            background: linear-gradient(180deg, #fff8f0 0%, #faf5eb 100%)
+        }
+
+        .moji-char-display {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 8px;
+            text-align: center
+        }
+
+        .moji-canvas-wrap {
+            background: white;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            padding: 12px;
+            width: 100%;
+            max-width: 380px;
+            position: relative;
+            margin-bottom: 15px
+        }
+
+        #mojiCanvas {
+            width: 100%;
+            border-radius: 14px;
+            display: block;
+            touch-action: none
+        }
+
+        .moji-nav {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap
+        }
+
+        .moji-nav-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            background: white;
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow);
+            transition: transform .2s, background .2s
+        }
+
+        @media (hover: hover) {
+            .moji-nav-btn:hover {
+                transform: scale(1.1);
+                background: var(--sakura)
+            }
+        }
+
+        .moji-current {
+            font-size: clamp(28px, 6vw, 42px);
+            font-weight: 900;
+            color: var(--dark);
+            background: white;
+            border-radius: 16px;
+            padding: 4px 24px;
+            box-shadow: var(--shadow);
+            min-width: 80px;
+            text-align: center
+        }
+
+        .moji-progress {
+            font-size: 13px;
+            color: #999;
+            text-align: center;
+            margin-bottom: 8px
+        }
+
+        .moji-result {
+            font-size: 18px;
+            font-weight: 700;
+            min-height: 30px;
+            text-align: center;
+            margin-bottom: 8px
+        }
+
+        .moji-action-btns {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap
+        }
+
+        .moji-action-btn {
+            padding: 12px 24px;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 700;
+            box-shadow: var(--shadow);
+            transition: transform .2s
+        }
+
+        @media (hover: hover) {
+            .moji-action-btn:hover {
+                transform: scale(1.05)
+            }
+        }
+
+        .moji-action-btn.primary {
+            background: var(--gold);
+            color: white
+        }
+
+        .moji-action-btn.secondary {
+            background: white;
+            color: var(--dark)
+        }
+
+        .moji-row-tabs {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 10px
+        }
+
+        .moji-row-tab {
+            padding: 6px 12px;
+            border-radius: 10px;
+            background: white;
+            font-size: 12px;
+            font-weight: 700;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .08);
+            transition: all .2s
+        }
+
+        .moji-row-tab.active {
+            background: var(--gold);
+            color: white
+        }
+
+        .moji-cat-tabs {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 12px
+        }
+
+        .moji-cat-tab {
+            padding: 10px 20px;
+            border-radius: 14px;
+            background: white;
+            font-size: 15px;
+            font-weight: 800;
+            box-shadow: var(--shadow);
+            transition: all .2s;
+            border: 2px solid transparent
+        }
+
+        .moji-cat-tab.active {
+            background: var(--fujiiro);
+            color: white;
+            border-color: var(--fujiiro)
+        }
+
+        .moji-stroke-btn {
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 700;
+            background: rgba(200, 180, 160, 0.2);
+            color: var(--dark);
+            transition: all .2s
+        }
+
+        .moji-stroke-btn.active {
+            background: var(--wakatake);
+            color: white
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media(max-width:480px) {
+            .mode-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px
+            }
+
+            .clock-container {
+                width: 220px;
+                height: 220px
+            }
+
+            .clock-number {
+                font-size: 16px
+            }
+
+            .hour-hand {
+                height: 55px
+            }
+
+            .minute-hand {
+                height: 75px
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ===== SAKURA PARTICLES ===== -->
+    <div id="sakuraContainer"></div>
+
+    <!-- ===== HOME SCREEN ===== -->
+    <div id="home" class="screen active">
+        <div class="home-character" id="homeChar">🥷</div>
+        <div class="home-speech">りっちゃん、きょうは<br>どのしゅぎょうにする？🌸</div>
+        <h1 class="home-title">にんじゃスクール</h1>
+        <p class="home-subtitle">CryptoNinja の せかいで たのしく まなぼう！</p>
+        <div class="mode-grid">
+            <div class="mode-card" onclick="showScreen('oekaki')">
+                <span class="icon">🎨</span>
+                <div class="label">おえかきの術</div>
+                <div class="teacher">🐼 リーリーせんせい</div>
+            </div>
+            <div class="mode-card" onclick="showScreen('nurie')">
+                <span class="icon">🖍️</span>
+                <div class="label">ぬりえの術</div>
+                <div class="teacher">🐰 ルナせんせい</div>
+            </div>
+            <div class="mode-card" onclick="showScreen('tokei')">
+                <span class="icon">⏰</span>
+                <div class="label">とけいの術</div>
+                <div class="teacher">🥷 オトちゃんせんせい</div>
+            </div>
+            <div class="mode-card" onclick="showScreen('moji')">
+                <span class="icon">🔤</span>
+                <div class="label">もじの術</div>
+                <div class="teacher">🐰 ルナせんせい</div>
+            </div>
+            <div class="mode-card" onclick="showScreen('stamps')">
+                <span class="icon">📜</span>
+                <div class="label">まきものラリー</div>
+                <div class="teacher">🔥 ひなのじょう</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== OEKAKI SCREEN ===== -->
+    <div id="oekaki" class="screen">
+        <div class="top-bar">
+            <button class="back-btn" onclick="showScreen('home')">←</button>
+            <div class="mode-title">🎨 おえかきの術</div>
+            <div class="rank-badge" id="oekakiRank">みならい</div>
+        </div>
+        <div class="toolbar">
+            <div class="color-palette" id="colorPalette"></div>
+        </div>
+        <div class="toolbar">
+            <div class="tool-group">
+                <button class="tool-btn active" data-tool="pen" onclick="setTool('pen',this)" title="ペン">✏️</button>
+                <button class="tool-btn" data-tool="eraser" onclick="setTool('eraser',this)" title="けしゴム">🧹</button>
+                <button class="tool-btn" data-tool="stamp" onclick="setTool('stamp',this)" title="スタンプ">⭐</button>
+            </div>
+            <div class="tool-group">
+                <button class="tool-btn" onclick="setSize(4)" title="ほそい">・</button>
+                <button class="tool-btn active" onclick="setSize(8)" title="ふつう">●</button>
+                <button class="tool-btn" onclick="setSize(16)" title="ふとい">⬤</button>
+            </div>
+            <div class="tool-group">
+                <button class="tool-btn" onclick="clearCanvas()" title="ぜんぶけす">🗑️</button>
+                <button class="tool-btn" onclick="saveDrawing()" title="ほぞん">💾</button>
+            </div>
+        </div>
+        <div class="toolbar" id="stampBar" style="display:none">
+            <div class="stamp-palette" id="stampPalette"></div>
+        </div>
+        <div class="canvas-wrap">
+            <canvas id="drawCanvas" width="700" height="450"></canvas>
+        </div>
+    </div>
+
+    <!-- ===== NURIE SCREEN ===== -->
+    <div id="nurie" class="screen">
+        <div class="top-bar">
+            <button class="back-btn" onclick="showScreen('home')">←</button>
+            <div class="mode-title">🖍️ ぬりえの術</div>
+            <div class="rank-badge" id="nurieRank">みならい</div>
+        </div>
+        <div class="nurie-selector" id="nurieSelector"></div>
+        <div class="toolbar">
+            <div class="color-palette" id="nurieColors"></div>
+        </div>
+        <div class="nurie-wrap" id="nurieArea"></div>
+        <button class="tool-btn" onclick="resetNurie()"
+            style="margin-top:10px;width:auto;padding:10px 20px;font-size:14px">🔄 やりなおす</button>
+    </div>
+
+    <!-- ===== TOKEI SCREEN ===== -->
+    <div id="tokei" class="screen">
+        <div class="top-bar">
+            <button class="back-btn" onclick="showScreen('home')">←</button>
+            <div class="mode-title">⏰ とけいの術</div>
+            <div class="rank-badge" id="tokeiRank">みならい</div>
+        </div>
+        <div class="level-tabs">
+            <button class="level-tab active" data-level="1" onclick="setLevel(1,this)">Lv.1 なんじ？</button>
+            <button class="level-tab locked" data-level="2" onclick="setLevel(2,this)">Lv.2 はりをあわせろ</button>
+            <button class="level-tab locked" data-level="3" onclick="setLevel(3,this)">Lv.3 ◯じ◯ぷん</button>
+        </div>
+        <div class="clock-area">
+            <div class="question-text" id="clockQuestion">もんだいを よういしてるよ…</div>
+            <div class="clock-container">
+                <div class="clock-face" id="clockFace">
+                    <div class="clock-center"></div>
+                    <div class="hour-hand clock-hand" id="hourHand"></div>
+                    <div class="minute-hand clock-hand" id="minuteHand"></div>
+                </div>
+            </div>
+            <div class="result-msg" id="resultMsg"></div>
+            <div class="choices" id="choicesArea"></div>
+            <button class="next-btn" id="nextBtn" onclick="nextQuestion()">つぎのもんだい →</button>
+        </div>
+    </div>
+
+    <!-- ===== MOJI (HIRAGANA TRACE) SCREEN ===== -->
+    <div id="moji" class="screen">
+        <div class="top-bar">
+            <button class="back-btn" onclick="showScreen('home')">←</button>
+            <div class="mode-title">🔤 もじの術</div>
+            <div class="rank-badge" id="mojiRank">みならい</div>
+        </div>
+        <div class="moji-cat-tabs" id="mojiCatTabs"></div>
+        <div class="moji-row-tabs" id="mojiRowTabs"></div>
+        <div class="moji-nav">
+            <button class="moji-nav-btn" onclick="mojiPrev()">◀</button>
+            <div class="moji-current" id="mojiCurrentChar">あ</div>
+            <button class="moji-nav-btn" onclick="mojiNext()">▶</button>
+        </div>
+        <div class="moji-progress" id="mojiProgress">1 / 46</div>
+        <div style="text-align:center;margin-bottom:6px">
+            <button class="moji-stroke-btn" id="strokeToggle" onclick="toggleStroke()">✍️ 書き順</button>
+        </div>
+        <div class="moji-canvas-wrap">
+            <canvas id="mojiCanvas" width="340" height="340"></canvas>
+        </div>
+        <div class="moji-result" id="mojiResult"></div>
+        <div class="moji-action-btns">
+            <button class="moji-action-btn secondary" onclick="mojiReset()">🔄 もう いっかい</button>
+            <button class="moji-action-btn primary" onclick="mojiCheck()">✅ できた！</button>
+        </div>
+    </div>
+
+    <!-- ===== STAMP RALLY ===== -->
+    <div id="stamps" class="screen">
+        <div class="top-bar">
+            <button class="back-btn" onclick="showScreen('home')">←</button>
+            <div class="mode-title">📜 まきものラリー</div>
+            <div class="rank-badge" id="stampRankBadge">みならい</div>
+        </div>
+        <div class="rank-display">
+            <div class="rank-title">いまのランク</div>
+            <div class="rank-name" id="rankName">みならい</div>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width:0%"></div>
+        </div>
+        <div class="stamp-grid" id="stampGrid"></div>
+    </div>
+
+    <script>
+        // ===== GAME STATE =====
+        const STATE_KEY = 'ninjaSchoolState';
+        let state = loadState();
+        function loadState() {
+            const def = { stamps: 0, oekakiCount: 0, nurieCount: 0, tokeiCorrect: 0, tokeiLevel: 1, mojiCount: 0, mojiCleared: [], rank: 'みならい' };
+            try { const s = localStorage.getItem(STATE_KEY); if (!s) return def; const p = JSON.parse(s); return { ...def, ...p }; }
+            catch (e) { return def; }
+        }
+        function saveState() { localStorage.setItem(STATE_KEY, JSON.stringify(state)); }
+        const RANKS = [{ name: 'みならい', need: 0 }, { name: '下忍', need: 5 }, { name: '中忍', need: 15 }, { name: '上忍', need: 30 }, { name: '忍者マスター', need: 50 }];
+        function updateRank() {
+            let r = RANKS[0]; for (const rk of RANKS) { if (state.stamps >= rk.need) r = rk; }
+            state.rank = r.name; saveState();
+            document.querySelectorAll('.rank-badge').forEach(b => b.textContent = state.rank);
+        }
+        function addStamp() { state.stamps++; updateRank(); spawnEffect('📜', window.innerWidth / 2, window.innerHeight / 2); }
+
+        // ===== SCREEN NAVIGATION =====
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            if (id === 'oekaki') initCanvas();
+            if (id === 'nurie') initNurie();
+            if (id === 'tokei') initTokei();
+            if (id === 'moji') initMoji();
+            if (id === 'stamps') initStamps();
+            updateRank();
+        }
+
+        // ===== SAKURA PARTICLES =====
+        function createSakura() {
+            const c = document.getElementById('sakuraContainer');
+            for (let i = 0; i < 12; i++) { const s = document.createElement('div'); s.className = 'sakura'; s.textContent = '🌸'; s.style.left = Math.random() * 100 + '%'; s.style.animationDuration = (6 + Math.random() * 8) + 's'; s.style.animationDelay = Math.random() * 10 + 's'; s.style.fontSize = (14 + Math.random() * 10) + 'px'; c.appendChild(s); }
+        }
+        createSakura();
+
+        // ===== EFFECTS =====
+        function spawnEffect(emoji, x, y) {
+            for (let i = 0; i < 6; i++) { const e = document.createElement('div'); e.className = 'sparkle'; e.textContent = emoji; e.style.left = (x - 20 + Math.random() * 40) + 'px'; e.style.top = (y - 20 + Math.random() * 40) + 'px'; document.body.appendChild(e); setTimeout(() => e.remove(), 800); }
+        }
+        function shurikenEffect(x, y) { const e = document.createElement('div'); e.className = 'shuriken-effect'; e.textContent = '⭐'; e.style.left = x + 'px'; e.style.top = y + 'px'; document.body.appendChild(e); setTimeout(() => e.remove(), 1000); }
+
+        // ===== OEKAKI (DRAWING) =====
+        const COLORS = ['#d64545', '#e87d3e', '#e8c94a', '#5cb85c', '#3ea7e8', '#7b68ee', '#e86dab', '#8B4513', '#333', '#888', '#ddd', '#fff'];
+        const STAMPS = ['⭐', '🌸', '❤️', '🐼', '🐰', '🥷', '📜', '🔥', '🏯', '💎'];
+        let ctx, drawing = false, tool = 'pen', penColor = '#333', penSize = 8, currentStamp = '⭐';
+
+        function initCanvas() {
+            const cv = document.getElementById('drawCanvas');
+            const wrap = cv.parentElement;
+            const dpr = window.devicePixelRatio || 1;
+            const cssW = Math.min(700, wrap.clientWidth - 16);
+            const cssH = Math.min(450, cssW * 0.64);
+            cv.width = cssW * dpr;
+            cv.height = cssH * dpr;
+            cv.style.width = cssW + 'px';
+            cv.style.height = cssH + 'px';
+            ctx = cv.getContext('2d');
+            ctx.scale(dpr, dpr);
+            ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cssW, cssH);
+            ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+            // Color palette
+            const cp = document.getElementById('colorPalette');
+            if (!cp.children.length) {
+                COLORS.forEach((c, i) => { const b = document.createElement('button'); b.className = 'color-btn' + (i === 8 ? ' active' : ''); b.style.background = c; b.onclick = () => { penColor = c; document.querySelectorAll('.color-btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); }; cp.appendChild(b); });
+            }
+            // Stamp palette
+            const sp = document.getElementById('stampPalette');
+            if (!sp.children.length) {
+                STAMPS.forEach((s, i) => { const b = document.createElement('button'); b.className = 'stamp-btn' + (i === 0 ? ' active' : ''); b.textContent = s; b.onclick = () => { currentStamp = s; document.querySelectorAll('.stamp-btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); }; sp.appendChild(b); });
+            }
+            // Events (pointer events work for both mouse and touch)
+            cv.onpointerdown = startDraw; cv.onpointermove = draw; cv.onpointerup = cv.onpointerleave = stopDraw;
+        }
+        function getPos(e) { const r = e.target.getBoundingClientRect(); const scaleX = e.target.offsetWidth / r.width; return { x: (e.clientX - r.left) * scaleX, y: (e.clientY - r.top) * scaleX }; }
+        function startDraw(e) {
+            if (tool === 'stamp') { const p = getPos(e); ctx.font = penSize * 3 + 'px serif'; ctx.fillText(currentStamp, p.x - penSize, p.y + penSize); return; }
+            drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y);
+        }
+        function draw(e) {
+            if (!drawing) return; const p = getPos(e);
+            ctx.strokeStyle = tool === 'eraser' ? '#fff' : penColor; ctx.lineWidth = tool === 'eraser' ? penSize * 3 : penSize;
+            ctx.lineTo(p.x, p.y); ctx.stroke();
+        }
+        function stopDraw() { if (drawing) { drawing = false; state.oekakiCount++; if (state.oekakiCount % 10 === 0) addStamp(); saveState(); } }
+        function setTool(t, btn) { tool = t; document.querySelectorAll('.tool-group .tool-btn[data-tool]').forEach(b => b.classList.remove('active')); btn.classList.add('active'); document.getElementById('stampBar').style.display = t === 'stamp' ? 'flex' : 'none'; }
+        function setSize(s) { penSize = s; }
+        function clearCanvas() { const cv = document.getElementById('drawCanvas'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height); }
+        function saveDrawing() { const cv = document.getElementById('drawCanvas'); const a = document.createElement('a'); a.download = 'りっちゃんのえ.png'; a.href = cv.toDataURL(); a.click(); addStamp(); }
+
+        // ===== NURIE (COLORING) =====
+        const NURIE_COLORS = ['#d64545', '#e87d3e', '#e8c94a', '#5cb85c', '#3ea7e8', '#7b68ee', '#e86dab', '#f8c3cd', '#8B4513', '#333', '#87CEEB', '#FFD700', '#FF6347', '#98FB98', '#DDA0DD', '#fff'];
+        let nurieColor = '#d64545';
+        const NURIE_DATA = [
+            { name: '🐼 パンダにんじゃ', svg: `<svg viewBox="0 0 300 300" class="nurie-svg"><ellipse cx="150" cy="170" rx="80" ry="90" fill="#eee" data-part="body"/><circle cx="150" cy="100" r="60" fill="#eee" data-part="head"/><ellipse cx="115" cy="75" rx="22" ry="25" fill="#eee" data-part="ear-l"/><ellipse cx="185" cy="75" rx="22" ry="25" fill="#eee" data-part="ear-r"/><ellipse cx="130" cy="95" rx="18" ry="14" fill="#eee" data-part="eye-l"/><ellipse cx="170" cy="95" rx="18" ry="14" fill="#eee" data-part="eye-r"/><circle cx="130" cy="95" r="5" fill="#111"/><circle cx="170" cy="95" r="5" fill="#111"/><ellipse cx="150" cy="112" rx="8" ry="5" fill="#333"/><path d="M130 125 Q150 138 170 125" fill="none" stroke="#333" stroke-width="2"/><rect x="110" y="160" width="80" height="15" rx="5" fill="#eee" data-part="belt"/><polygon points="150,55 145,40 155,40" fill="#eee" data-part="headband"/><ellipse cx="100" cy="200" rx="18" ry="35" fill="#eee" data-part="arm-l"/><ellipse cx="200" cy="200" rx="18" ry="35" fill="#eee" data-part="arm-r"/><ellipse cx="125" cy="255" rx="22" ry="15" fill="#eee" data-part="foot-l"/><ellipse cx="175" cy="255" rx="22" ry="15" fill="#eee" data-part="foot-r"/></svg>` },
+            { name: '🐰 うさぎにんじゃ', svg: `<svg viewBox="0 0 300 300" class="nurie-svg"><ellipse cx="150" cy="180" rx="65" ry="75" fill="#eee" data-part="body"/><circle cx="150" cy="115" r="50" fill="#eee" data-part="head"/><ellipse cx="125" cy="45" rx="14" ry="40" fill="#eee" data-part="ear-l"/><ellipse cx="175" cy="45" rx="14" ry="40" fill="#eee" data-part="ear-r"/><circle cx="133" cy="108" r="6" fill="#111"/><circle cx="167" cy="108" r="6" fill="#111"/><polygon points="150,120 146,126 154,126" fill="#faa"/><path d="M140 132 Q150 140 160 132" fill="none" stroke="#333" stroke-width="2"/><rect x="115" y="170" width="70" height="12" rx="4" fill="#eee" data-part="belt"/><ellipse cx="95" cy="200" rx="15" ry="30" fill="#eee" data-part="arm-l"/><ellipse cx="205" cy="200" rx="15" ry="30" fill="#eee" data-part="arm-r"/><ellipse cx="130" cy="250" rx="20" ry="12" fill="#eee" data-part="foot-l"/><ellipse cx="170" cy="250" rx="20" ry="12" fill="#eee" data-part="foot-r"/><circle cx="150" cy="255" r="12" fill="#eee" data-part="tail"/></svg>` },
+            { name: '🏯 にんじゃのおしろ', svg: `<svg viewBox="0 0 300 300" class="nurie-svg"><rect x="40" y="180" width="220" height="100" fill="#eee" data-part="wall"/><rect x="80" y="120" width="140" height="70" fill="#eee" data-part="floor2"/><polygon points="150,50 70,120 230,120" fill="#eee" data-part="roof"/><rect x="130" y="220" width="40" height="60" fill="#eee" data-part="door"/><rect x="60" y="200" width="30" height="25" fill="#eee" data-part="win-l"/><rect x="210" y="200" width="30" height="25" fill="#eee" data-part="win-r"/><rect x="100" y="140" width="25" height="20" fill="#eee" data-part="win-2l"/><rect x="175" y="140" width="25" height="20" fill="#eee" data-part="win-2r"/><polygon points="150,50 145,35 155,35" fill="#eee" data-part="flag"/><rect x="0" y="280" width="300" height="20" fill="#eee" data-part="ground"/></svg>` }
+        ];
+        let currentNurie = 0;
+        function initNurie() {
+            const sel = document.getElementById('nurieSelector');
+            const cp = document.getElementById('nurieColors');
+            if (!sel.children.length) {
+                NURIE_DATA.forEach((n, i) => { const b = document.createElement('button'); b.className = 'nurie-select-btn' + (i === 0 ? ' active' : ''); b.textContent = n.name; b.onclick = () => { currentNurie = i; document.querySelectorAll('.nurie-select-btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); renderNurie(); }; sel.appendChild(b); });
+            }
+            if (!cp.children.length) {
+                NURIE_COLORS.forEach((c, i) => { const b = document.createElement('button'); b.className = 'color-btn' + (i === 0 ? ' active' : ''); b.style.background = c; if (c === '#fff') b.style.border = '2px solid #ccc'; b.onclick = () => { nurieColor = c; document.querySelectorAll('#nurieColors .color-btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); }; cp.appendChild(b); });
+            }
+            renderNurie();
+        }
+        function renderNurie() {
+            const area = document.getElementById('nurieArea');
+            area.innerHTML = NURIE_DATA[currentNurie].svg;
+            area.querySelectorAll('[data-part]').forEach(el => { el.addEventListener('click', () => { el.style.fill = nurieColor; state.nurieCount++; if (state.nurieCount % 15 === 0) addStamp(); saveState(); spawnEffect('✨', event.clientX, event.clientY); }); });
+        }
+        function resetNurie() { renderNurie(); }
+
+        // ===== TOKEI (CLOCK) =====
+        let clockLevel = 1, clockAnswer = 0, isDragging = false, dragHand = null;
+        function initTokei() {
+            clockLevel = state.tokeiLevel || 1;
+            drawClockNumbers(); updateLevelTabs(); nextQuestion();
+            // Drag for level 2
+            const mh = document.getElementById('minuteHand'), hh = document.getElementById('hourHand');
+            const cf = document.getElementById('clockFace');
+            cf.addEventListener('pointerdown', startDrag); document.addEventListener('pointermove', onDrag); document.addEventListener('pointerup', stopDrag);
+        }
+        function drawClockNumbers() {
+            const face = document.getElementById('clockFace');
+            face.querySelectorAll('.clock-number').forEach(n => n.remove());
+            for (let i = 1; i <= 12; i++) {
+                const n = document.createElement('div'); n.className = 'clock-number'; n.textContent = i;
+                const angle = (i * 30 - 90) * Math.PI / 180; const r = 105;
+                const rr = document.getElementById('clockFace').offsetWidth / 2 || 130;
+                const scale = rr / 140;
+                n.style.left = (rr + r * scale * Math.cos(angle) - 15) + 'px';
+                n.style.top = (rr + r * scale * Math.sin(angle) - 15) + 'px';
+                face.appendChild(n);
+            }
+        }
+        function setClockHands(h, m) {
+            const hAngle = (h % 12) * 30 + m * 0.5; const mAngle = m * 6;
+            document.getElementById('hourHand').style.transform = `translateX(-50%) rotate(${hAngle}deg)`;
+            document.getElementById('minuteHand').style.transform = `translateX(-50%) rotate(${mAngle}deg)`;
+        }
+        function nextQuestion() {
+            document.getElementById('resultMsg').textContent = ''; document.getElementById('nextBtn').style.display = 'none';
+            const ca = document.getElementById('choicesArea'); ca.innerHTML = '';
+            if (clockLevel === 1) { quizLevel1(); }
+            else if (clockLevel === 2) { quizLevel2(); }
+            else { quizLevel3(); }
+        }
+        function quizLevel1() {
+            const h = Math.floor(Math.random() * 12) + 1; clockAnswer = h;
+            setClockHands(h, 0);
+            document.getElementById('clockQuestion').textContent = 'いま なんじ？';
+            const ca = document.getElementById('choicesArea');
+            let opts = [h]; while (opts.length < 3) { let o = Math.floor(Math.random() * 12) + 1; if (!opts.includes(o)) opts.push(o); }
+            opts.sort(() => Math.random() - .5);
+            opts.forEach(o => { const b = document.createElement('button'); b.className = 'choice-btn'; b.textContent = o + 'じ'; b.onclick = () => checkAnswer(o === h, b); ca.appendChild(b); });
+            document.getElementById('minuteHand').classList.remove('draggable');
+            document.getElementById('hourHand').classList.remove('draggable');
+        }
+        function quizLevel2() {
+            const h = Math.floor(Math.random() * 12) + 1; clockAnswer = h;
+            setClockHands(12, 0);
+            document.getElementById('clockQuestion').textContent = h + 'じ にしてね！';
+            document.getElementById('choicesArea').innerHTML = '<button class="choice-btn" onclick="checkLevel2()">できた！✅</button>';
+            document.getElementById('minuteHand').classList.add('draggable');
+            document.getElementById('hourHand').classList.add('draggable');
+        }
+        function quizLevel3() {
+            const h = Math.floor(Math.random() * 12) + 1;
+            const mOpts = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
+            const m = mOpts[Math.floor(Math.random() * mOpts.length)];
+            clockAnswer = { h, m }; setClockHands(h, m);
+            document.getElementById('clockQuestion').textContent = 'いま なんじ なんぷん？';
+            const ca = document.getElementById('choicesArea');
+            let opts = [{ h, m }];
+            while (opts.length < 3) { const oh = Math.floor(Math.random() * 12) + 1; const om = mOpts[Math.floor(Math.random() * mOpts.length)]; if (!opts.find(o => o.h === oh && o.m === om)) opts.push({ h: oh, m: om }); }
+            opts.sort(() => Math.random() - .5);
+            opts.forEach(o => { const b = document.createElement('button'); b.className = 'choice-btn'; b.textContent = o.h + 'じ' + (o.m > 0 ? o.m + 'ぷん' : ''); b.onclick = () => checkAnswer(o.h === h && o.m === m, b); ca.appendChild(b); });
+        }
+        // Drag functionality for level 2
+        function startDrag(e) {
+            if (clockLevel !== 2) return;
+            isDragging = true; dragHand = 'hour';
+        }
+        function onDrag(e) {
+            if (!isDragging) return;
+            const face = document.getElementById('clockFace'); const r = face.getBoundingClientRect();
+            const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+            let angle = Math.atan2(e.clientY - cy, e.clientX - cx) * 180 / Math.PI + 90;
+            if (angle < 0) angle += 360;
+            document.getElementById('hourHand').style.transform = `translateX(-50%) rotate(${angle}deg)`;
+            document.getElementById('minuteHand').style.transform = `translateX(-50%) rotate(${angle * 12 % 360}deg)`;
+        }
+        function stopDrag() { isDragging = false; }
+        function checkLevel2() {
+            const hand = document.getElementById('hourHand');
+            const t = hand.style.transform; const m = t.match(/rotate\(([.\d]+)deg\)/);
+            if (!m) return;
+            const angle = parseFloat(m[1]) % 360; const guessH = Math.round(angle / 30) % 12 || 12;
+            checkAnswer(guessH === clockAnswer);
+        }
+        function checkAnswer(correct, btn) {
+            const rm = document.getElementById('resultMsg');
+            if (correct) {
+                rm.textContent = '🌟 すごい！りっちゃん！せいかい！🌟'; rm.style.color = getComputedStyle(document.documentElement).getPropertyValue('--wakatake');
+                state.tokeiCorrect++;
+                if (state.tokeiCorrect >= 3 && state.tokeiLevel < 2) { state.tokeiLevel = 2; updateLevelTabs(); }
+                if (state.tokeiCorrect >= 8 && state.tokeiLevel < 3) { state.tokeiLevel = 3; updateLevelTabs(); }
+                if (state.tokeiCorrect % 3 === 0) addStamp();
+                saveState(); shurikenEffect(window.innerWidth / 2, window.innerHeight / 2);
+            } else {
+                rm.textContent = 'おしい！もういっかい がんばろう！💪'; rm.style.color = '#e87d3e';
+            }
+            document.getElementById('nextBtn').style.display = 'inline-block';
+        }
+        function setLevel(lv, btn) {
+            if (lv > state.tokeiLevel) return;
+            clockLevel = lv; document.querySelectorAll('.level-tab').forEach(t => t.classList.remove('active')); btn.classList.add('active'); nextQuestion();
+        }
+        function updateLevelTabs() {
+            document.querySelectorAll('.level-tab').forEach(t => {
+                const lv = parseInt(t.dataset.level);
+                if (lv <= state.tokeiLevel) { t.classList.remove('locked'); } else { t.classList.add('locked'); }
+            });
+        }
+
+        // ===== MOJI (CHARACTER TRACE) =====
+        const MOJI_CATS = [
+            {
+                name: 'ひらがな', icon: 'あ', rows: [
+                    { name: 'あ行', chars: ['あ', 'い', 'う', 'え', 'お'] },
+                    { name: 'か行', chars: ['か', 'き', 'く', 'け', 'こ'] },
+                    { name: 'さ行', chars: ['さ', 'し', 'す', 'せ', 'そ'] },
+                    { name: 'た行', chars: ['た', 'ち', 'つ', 'て', 'と'] },
+                    { name: 'な行', chars: ['な', 'に', 'ぬ', 'ね', 'の'] },
+                    { name: 'は行', chars: ['は', 'ひ', 'ふ', 'へ', 'ほ'] },
+                    { name: 'ま行', chars: ['ま', 'み', 'む', 'め', 'も'] },
+                    { name: 'や行', chars: ['や', 'ゆ', 'よ'] },
+                    { name: 'ら行', chars: ['ら', 'り', 'る', 'れ', 'ろ'] },
+                    { name: 'わ行', chars: ['わ', 'を', 'ん'] }
+                ]
+            },
+            {
+                name: 'カタカナ', icon: 'ア', rows: [
+                    { name: 'ア行', chars: ['ア', 'イ', 'ウ', 'エ', 'オ'] },
+                    { name: 'カ行', chars: ['カ', 'キ', 'ク', 'ケ', 'コ'] },
+                    { name: 'サ行', chars: ['サ', 'シ', 'ス', 'セ', 'ソ'] },
+                    { name: 'タ行', chars: ['タ', 'チ', 'ツ', 'テ', 'ト'] },
+                    { name: 'ナ行', chars: ['ナ', 'ニ', 'ヌ', 'ネ', 'ノ'] },
+                    { name: 'ハ行', chars: ['ハ', 'ヒ', 'フ', 'ヘ', 'ホ'] },
+                    { name: 'マ行', chars: ['マ', 'ミ', 'ム', 'メ', 'モ'] },
+                    { name: 'ヤ行', chars: ['ヤ', 'ユ', 'ヨ'] },
+                    { name: 'ラ行', chars: ['ラ', 'リ', 'ル', 'レ', 'ロ'] },
+                    { name: 'ワ行', chars: ['ワ', 'ヲ', 'ン'] }
+                ]
+            },
+            {
+                name: 'ABC', icon: 'A', rows: [
+                    { name: 'A-E', chars: ['A', 'B', 'C', 'D', 'E'] },
+                    { name: 'F-J', chars: ['F', 'G', 'H', 'I', 'J'] },
+                    { name: 'K-O', chars: ['K', 'L', 'M', 'N', 'O'] },
+                    { name: 'P-T', chars: ['P', 'Q', 'R', 'S', 'T'] },
+                    { name: 'U-Z', chars: ['U', 'V', 'W', 'X', 'Y', 'Z'] }
+                ]
+            }
+        ];
+
+        // Stroke order: path-based data for each character
+        // Each entry: array of [numX%, numY%] — position to place stroke number
+        // Numbers are offset slightly from stroke start to avoid overlapping the character
+        // Colors: 1st=red, 2nd=blue, 3rd=green, 4th=orange, 5th+=purple
+        const STROKE_COLORS = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6', '#1abc9c', '#e67e22', '#e84393'];
+
+        const STROKE_DATA = {
+            // ===== ひらがな =====
+            'あ': [[12, 27], [50, 5], [68, 35]],
+            'い': [[30, 15], [68, 12]],
+            'う': [[42, 8], [30, 25]],
+            'え': [[35, 12], [58, 27]],
+            'お': [[12, 22], [50, 5], [68, 38]],
+            'か': [[18, 15], [42, 8], [72, 22]],
+            'き': [[15, 18], [15, 38], [55, 5], [30, 52]],
+            'く': [[62, 12]],
+            'け': [[18, 8], [18, 35], [68, 18]],
+            'こ': [[18, 28], [22, 58]],
+            'さ': [[15, 18], [15, 40], [55, 8]],
+            'し': [[32, 10]],
+            'す': [[15, 18], [52, 5]],
+            'せ': [[18, 8], [8, 35], [58, 25]],
+            'そ': [[42, 5]],
+            'た': [[12, 20], [12, 45], [52, 5], [65, 48]],
+            'ち': [[18, 20], [55, 12]],
+            'つ': [[15, 28]],
+            'て': [[22, 17], [58, 18]],
+            'と': [[35, 8], [30, 45]],
+            'な': [[12, 20], [50, 5], [65, 35], [50, 62]],
+            'に': [[18, 8], [42, 25], [42, 52]],
+            'ぬ': [[18, 20], [58, 12]],
+            'ね': [[18, 8], [35, 18]],
+            'の': [[58, 12]],
+            'は': [[18, 8], [40, 22], [60, 18]],
+            'ひ': [[22, 28]],
+            'ふ': [[45, 10], [22, 30], [62, 30], [35, 55]],
+            'へ': [[10, 48]],
+            'ほ': [[18, 8], [18, 22], [52, 18], [38, 48]],
+            'ま': [[12, 18], [12, 42], [50, 8]],
+            'み': [[30, 15], [45, 45]],
+            'む': [[18, 18], [50, 5], [65, 52]],
+            'め': [[22, 18], [58, 12]],
+            'も': [[22, 22], [22, 48], [52, 8]],
+            'や': [[15, 18], [65, 8], [68, 42]],
+            'ゆ': [[22, 18], [58, 10]],
+            'よ': [[28, 22], [55, 8]],
+            'ら': [[35, 14], [40, 25]],
+            'り': [[28, 12], [65, 8]],
+            'る': [[32, 7], [52, 8]],
+            'れ': [[18, 8], [38, 20]],
+            'ろ': [[28, 7], [52, 8]],
+            'わ': [[18, 8], [40, 20]],
+            'を': [[15, 18], [12, 42], [50, 30]],
+            'ん': [[32, 10]],
+
+            // ===== カタカナ =====
+            'ア': [[18, 20], [58, 10]],
+            'イ': [[58, 10], [38, 22]],
+            'ウ': [[38, 8], [15, 28], [72, 28]],
+            'エ': [[18, 14], [40, 14], [15, 72]],
+            'オ': [[12, 22], [58, 5], [25, 40]],
+            'カ': [[18, 12], [65, 12]],
+            'キ': [[15, 20], [15, 42], [55, 8]],
+            'ク': [[45, 10], [65, 10]],
+            'ケ': [[24, 10], [40, 8], [38, 35]],
+            'コ': [[18, 14], [75, 14], [18, 72]],
+            'サ': [[18, 18], [62, 18], [10, 40]],
+            'シ': [[22, 20], [24, 45], [72, 22]],
+            'ス': [[18, 14], [58, 14]],
+            'セ': [[18, 8], [10, 35], [52, 20]],
+            'ソ': [[22, 14], [68, 14]],
+            'タ': [[18, 14], [58, 8], [65, 35]],
+            'チ': [[15, 14], [15, 38], [50, 38]],
+            'ツ': [[15, 14], [45, 10], [75, 14]],
+            'テ': [[15, 14], [15, 38], [50, 38]],
+            'ト': [[38, 8], [38, 35]],
+            'ナ': [[24, 22], [58, 8]],
+            'ニ': [[22, 25], [15, 58]],
+            'ヌ': [[15, 14], [68, 14]],
+            'ネ': [[38, 4], [42, 10], [15, 32], [75, 32]],
+            'ノ': [[68, 10]],
+            'ハ': [[28, 18], [62, 18]],
+            'ヒ': [[58, 8], [12, 40]],
+            'フ': [[18, 14], [68, 14]],
+            'ヘ': [[10, 48]],
+            'ホ': [[15, 14], [50, 14], [42, 38], [55, 38]],
+            'マ': [[15, 14], [72, 14]],
+            'ミ': [[18, 14], [24, 38], [22, 62]],
+            'ム': [[18, 65], [50, 45]],
+            'メ': [[24, 18], [72, 10]],
+            'モ': [[15, 14], [15, 40], [50, 40]],
+            'ヤ': [[15, 18], [65, 8]],
+            'ユ': [[18, 20], [15, 68]],
+            'ヨ': [[22, 14], [22, 40], [22, 68]],
+            'ラ': [[22, 14], [58, 14]],
+            'リ': [[25, 10], [65, 8]],
+            'ル': [[22, 10], [62, 10]],
+            'レ': [[22, 8]],
+            'ロ': [[18, 14], [18, 14], [75, 14]],
+            'ワ': [[18, 14], [65, 14]],
+            'ヲ': [[15, 14], [15, 40], [58, 35]],
+            'ン': [[24, 30], [72, 14]],
+
+            // ===== ABC (大文字) =====
+            'A': [[8, 78], [55, 10], [22, 52]],
+            'B': [[12, 10], [28, 10], [28, 42]],
+            'C': [[78, 18]],
+            'D': [[14, 10], [28, 10]],
+            'E': [[72, 10], [14, 10], [14, 44], [14, 78]],
+            'F': [[72, 10], [14, 10], [14, 44]],
+            'G': [[75, 18], [75, 66]],
+            'H': [[14, 10], [82, 10], [14, 44]],
+            'I': [[24, 10], [44, 10], [24, 78]],
+            'J': [[24, 10], [58, 10]],
+            'K': [[14, 10], [75, 10], [28, 38]],
+            'L': [[14, 10], [14, 78]],
+            'M': [[10, 78], [10, 10], [54, 48], [85, 10]],
+            'N': [[14, 78], [14, 10], [82, 78]],
+            'O': [[54, 10]],
+            'P': [[14, 10], [22, 10]],
+            'Q': [[54, 10], [62, 62]],
+            'R': [[14, 10], [22, 10], [44, 44]],
+            'S': [[75, 18]],
+            'T': [[10, 10], [54, 10]],
+            'U': [[14, 10]],
+            'V': [[14, 10], [54, 78]],
+            'W': [[8, 10], [24, 78], [44, 35], [74, 78]],
+            'X': [[14, 10], [82, 10]],
+            'Y': [[14, 10], [82, 10], [54, 44]],
+            'Z': [[14, 10], [82, 10], [14, 78]]
+        };
+
+        let mojiCatIdx = 0, mojiIndex = 0, mojiCtx = null, mojiDrawing = false, mojiGuideData = null, showStroke = true;
+
+        function getMojiChars() { return MOJI_CATS[mojiCatIdx].rows.flatMap(r => r.chars); }
+
+        function initMoji() {
+            const cv = document.getElementById('mojiCanvas');
+            const wrap = cv.parentElement;
+            const size = Math.min(340, wrap.clientWidth - 24);
+            const dpr = window.devicePixelRatio || 1;
+            cv.width = size * dpr;
+            cv.height = size * dpr;
+            cv.style.width = size + 'px';
+            cv.style.height = size + 'px';
+            mojiCtx = cv.getContext('2d');
+            mojiCtx.scale(dpr, dpr);
+            // Category tabs
+            const catTabs = document.getElementById('mojiCatTabs');
+            catTabs.innerHTML = '';
+            MOJI_CATS.forEach((cat, ci) => {
+                const b = document.createElement('button');
+                b.className = 'moji-cat-tab' + (ci === mojiCatIdx ? ' active' : '');
+                b.textContent = cat.icon + ' ' + cat.name;
+                b.onclick = () => {
+                    mojiCatIdx = ci; mojiIndex = 0;
+                    document.querySelectorAll('.moji-cat-tab').forEach(t => t.classList.remove('active'));
+                    b.classList.add('active');
+                    buildRowTabs();
+                    mojiRender();
+                };
+                catTabs.appendChild(b);
+            });
+            buildRowTabs();
+            // Events
+            cv.onpointerdown = mojiStart;
+            cv.onpointermove = mojiDraw;
+            cv.onpointerup = cv.onpointerleave = mojiStop;
+            // Stroke toggle
+            const sb = document.getElementById('strokeToggle');
+            sb.classList.toggle('active', showStroke);
+            mojiRender();
+        }
+
+        function buildRowTabs() {
+            const tabs = document.getElementById('mojiRowTabs');
+            tabs.innerHTML = '';
+            const cat = MOJI_CATS[mojiCatIdx];
+            cat.rows.forEach((row, ri) => {
+                const b = document.createElement('button');
+                b.className = 'moji-row-tab' + (ri === 0 ? ' active' : '');
+                b.textContent = row.name;
+                b.onclick = () => {
+                    const allChars = getMojiChars();
+                    const idx = allChars.indexOf(row.chars[0]);
+                    if (idx >= 0) { mojiIndex = idx; mojiRender(); }
+                    document.querySelectorAll('.moji-row-tab').forEach(t => t.classList.remove('active'));
+                    b.classList.add('active');
+                };
+                tabs.appendChild(b);
+            });
+        }
+
+        function toggleStroke() {
+            showStroke = !showStroke;
+            document.getElementById('strokeToggle').classList.toggle('active', showStroke);
+            mojiRender();
+        }
+
+        function mojiRender() {
+            const cv = document.getElementById('mojiCanvas');
+            const dpr = window.devicePixelRatio || 1;
+            const size = cv.width / dpr;
+            mojiCtx.save();
+            mojiCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            // Clear
+            mojiCtx.fillStyle = '#fff';
+            mojiCtx.fillRect(0, 0, size, size);
+            // Grid lines
+            mojiCtx.strokeStyle = '#eee';
+            mojiCtx.lineWidth = 1;
+            mojiCtx.setLineDash([8, 4]);
+            mojiCtx.beginPath();
+            mojiCtx.moveTo(size / 2, 0); mojiCtx.lineTo(size / 2, size);
+            mojiCtx.moveTo(0, size / 2); mojiCtx.lineTo(size, size / 2);
+            mojiCtx.stroke();
+            mojiCtx.setLineDash([]);
+            const isABC = mojiCatIdx === 2;
+            // ABC guide lines (4-line system)
+            if (isABC) {
+                mojiCtx.strokeStyle = 'rgba(0, 200, 200, 0.35)';
+                mojiCtx.lineWidth = 1;
+                mojiCtx.setLineDash([]);
+                const lines = [size * 0.15, size * 0.38, size * 0.78, size * 0.92];
+                lines.forEach(ly => {
+                    mojiCtx.beginPath();
+                    mojiCtx.moveTo(size * 0.05, ly);
+                    mojiCtx.lineTo(size * 0.95, ly);
+                    mojiCtx.stroke();
+                });
+                // Remove cross guides for ABC, already have 4 lines
+                mojiCtx.strokeStyle = '#eee';
+            }
+            // Guide character
+            const allChars = getMojiChars();
+            const ch = allChars[mojiIndex];
+            mojiCtx.fillStyle = 'rgba(200, 180, 160, 0.18)';
+            mojiCtx.font = `bold ${size * (isABC ? 0.55 : 0.75)}px ${isABC ? "'Arial', sans-serif" : "'Zen Maru Gothic', sans-serif"}`;
+            mojiCtx.textAlign = 'center';
+            mojiCtx.textBaseline = 'middle';
+            mojiCtx.fillText(ch, size / 2, size * (isABC ? 0.5 : 0.52));
+            // Stroke order numbers only (no guide lines)
+            if (showStroke && STROKE_DATA[ch]) {
+                const strokes = STROKE_DATA[ch];
+                // Calculate character bounding box using measureText
+                const metrics = mojiCtx.measureText(ch);
+                const cx = size / 2;
+                const cy = size * (isABC ? 0.5 : 0.52);
+                const bbLeft = cx - metrics.actualBoundingBoxLeft;
+                const bbRight = cx + metrics.actualBoundingBoxRight;
+                const bbTop = cy - metrics.actualBoundingBoxAscent;
+                const bbBottom = cy + metrics.actualBoundingBoxDescent;
+                const bbW = bbRight - bbLeft;
+                const bbH = bbBottom - bbTop;
+                const padX = bbW * 0.18;
+                const padY = bbH * 0.18;
+                const bx = bbLeft - padX;
+                const by = bbTop - padY;
+                const bw = bbW + padX * 2;
+                const bh = bbH + padY * 2;
+                const toX = (pct) => bx + pct / 100 * bw;
+                const toY = (pct) => by + pct / 100 * bh;
+
+                strokes.forEach((pos, i) => {
+                    const color = STROKE_COLORS[i % STROKE_COLORS.length];
+                    const numX = toX(pos[0]);
+                    const numY = toY(pos[1]);
+                    const circR = size * 0.028;
+                    // Filled circle
+                    mojiCtx.beginPath();
+                    mojiCtx.arc(numX, numY, circR, 0, Math.PI * 2);
+                    mojiCtx.fillStyle = color;
+                    mojiCtx.globalAlpha = 0.95;
+                    mojiCtx.fill();
+                    mojiCtx.globalAlpha = 1;
+                    // White border
+                    mojiCtx.beginPath();
+                    mojiCtx.arc(numX, numY, circR, 0, Math.PI * 2);
+                    mojiCtx.strokeStyle = '#fff';
+                    mojiCtx.lineWidth = 1.5;
+                    mojiCtx.stroke();
+                    // Number
+                    mojiCtx.fillStyle = '#fff';
+                    mojiCtx.font = `bold ${size * 0.03}px 'Arial', sans-serif`;
+                    mojiCtx.textAlign = 'center';
+                    mojiCtx.textBaseline = 'middle';
+                    mojiCtx.fillText(i + 1, numX, numY + 0.5);
+                    // Reset font
+                    mojiCtx.font = `bold ${size * (isABC ? 0.55 : 0.75)}px ${isABC ? "'Arial', sans-serif" : "'Zen Maru Gothic', sans-serif"}`;
+                });
+            }
+            mojiCtx.restore();
+            // Save guide pixel data
+            mojiGuideData = mojiCtx.getImageData(0, 0, cv.width, cv.height);
+            // Setup drawing style
+            mojiCtx.save();
+            mojiCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            mojiCtx.lineCap = 'round';
+            mojiCtx.lineJoin = 'round';
+            mojiCtx.strokeStyle = '#e86dab';
+            mojiCtx.lineWidth = size * 0.06;
+            mojiCtx.restore();
+            // Update UI
+            const cleared = state.mojiCleared || [];
+            document.getElementById('mojiCurrentChar').textContent = (cleared.includes(ch) ? '★ ' : '') + ch;
+            document.getElementById('mojiProgress').textContent = (mojiIndex + 1) + ' / ' + allChars.length + '　（クリア: ' + cleared.length + '/' + (46 + 46 + 26) + '）';
+            document.getElementById('mojiResult').textContent = '';
+            // Update row tab active
+            let cumIdx = 0;
+            MOJI_CATS[mojiCatIdx].rows.forEach((row, ri) => {
+                const start = cumIdx;
+                cumIdx += row.chars.length;
+                const tab = document.querySelectorAll('.moji-row-tab')[ri];
+                if (tab) {
+                    if (mojiIndex >= start && mojiIndex < cumIdx) tab.classList.add('active');
+                    else tab.classList.remove('active');
+                }
+            });
+        }
+
+        function mojiGetPos(e) {
+            const cv = document.getElementById('mojiCanvas');
+            const r = cv.getBoundingClientRect();
+            return { x: e.clientX - r.left, y: e.clientY - r.top };
+        }
+        function mojiStart(e) {
+            mojiDrawing = true;
+            const dpr = window.devicePixelRatio || 1;
+            mojiCtx.save();
+            mojiCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            mojiCtx.beginPath();
+            const p = mojiGetPos(e);
+            mojiCtx.moveTo(p.x, p.y);
+            mojiCtx.restore();
+        }
+        function mojiDraw(e) {
+            if (!mojiDrawing) return;
+            const dpr = window.devicePixelRatio || 1;
+            const cv = document.getElementById('mojiCanvas');
+            const size = cv.width / dpr;
+            mojiCtx.save();
+            mojiCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            mojiCtx.lineCap = 'round';
+            mojiCtx.lineJoin = 'round';
+            mojiCtx.strokeStyle = '#e86dab';
+            mojiCtx.lineWidth = size * 0.06;
+            const p = mojiGetPos(e);
+            mojiCtx.lineTo(p.x, p.y);
+            mojiCtx.stroke();
+            mojiCtx.restore();
+        }
+        function mojiStop() { mojiDrawing = false; }
+
+        function mojiCheck() {
+            const cv = document.getElementById('mojiCanvas');
+            const dpr = window.devicePixelRatio || 1;
+            const drawnData = mojiCtx.getImageData(0, 0, cv.width, cv.height);
+            const guide = mojiGuideData.data;
+            const drawn = drawnData.data;
+            let guidePixels = 0, coveredPixels = 0;
+            for (let i = 0; i < guide.length; i += 4) {
+                const gAlpha = guide[i + 3];
+                const gR = guide[i], gG = guide[i + 1], gB = guide[i + 2];
+                const isGuide = gAlpha > 30 && (gR < 220 || gG < 200 || gB < 180);
+                if (isGuide) {
+                    guidePixels++;
+                    const dR = drawn[i], dG = drawn[i + 1], dB = drawn[i + 2];
+                    const isPink = dR > 180 && dB > 120 && dG < 160;
+                    if (isPink) coveredPixels++;
+                }
+            }
+            const coverage = guidePixels > 0 ? coveredPixels / guidePixels : 0;
+            const rm = document.getElementById('mojiResult');
+            const allChars = getMojiChars();
+            const ch = allChars[mojiIndex];
+            if (coverage >= 0.12) {
+                rm.textContent = '🌟 すごい！「' + ch + '」にんじゅつ かんりょう！🌟';
+                rm.style.color = getComputedStyle(document.documentElement).getPropertyValue('--wakatake');
+                shurikenEffect(window.innerWidth / 2, window.innerHeight / 2);
+                state.mojiCount++;
+                if (!state.mojiCleared) state.mojiCleared = [];
+                if (!state.mojiCleared.includes(ch)) state.mojiCleared.push(ch);
+                if (state.mojiCount % 5 === 0) addStamp();
+                saveState();
+                document.getElementById('mojiCurrentChar').textContent = '★ ' + ch;
+                const cleared = state.mojiCleared;
+                document.getElementById('mojiProgress').textContent = (mojiIndex + 1) + ' / ' + allChars.length + '　（クリア: ' + cleared.length + '/' + (46 + 46 + 26) + '）';
+            } else {
+                rm.textContent = 'もうすこし おおきく なぞってみよう！💪';
+                rm.style.color = '#e87d3e';
+            }
+        }
+
+        function mojiReset() { mojiRender(); }
+        function mojiPrev() { const all = getMojiChars(); mojiIndex = (mojiIndex - 1 + all.length) % all.length; mojiRender(); }
+        function mojiNext() { const all = getMojiChars(); mojiIndex = (mojiIndex + 1) % all.length; mojiRender(); }
+
+        // ===== STAMP RALLY =====
+        function initStamps() {
+            const grid = document.getElementById('stampGrid'); grid.innerHTML = '';
+            const total = 50;
+            for (let i = 0; i < total; i++) { const cell = document.createElement('div'); cell.className = 'stamp-cell ' + (i < state.stamps ? 'earned' : 'empty'); cell.textContent = i < state.stamps ? '📜' : '？'; grid.appendChild(cell); }
+            document.getElementById('rankName').textContent = state.rank;
+            const nextRank = RANKS.find(r => r.need > state.stamps);
+            const prevRank = [...RANKS].reverse().find(r => r.need <= state.stamps) || RANKS[0];
+            const progress = nextRank ? ((state.stamps - prevRank.need) / (nextRank.need - prevRank.need) * 100) : 100;
+            document.getElementById('progressFill').style.width = Math.min(progress, 100) + '%';
+        }
+
+        // ===== INIT =====
+        updateRank();
+    </script>
+</body>
+
+</html>
