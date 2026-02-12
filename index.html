@@ -477,7 +477,8 @@
             background: white;
             border: 6px solid var(--wakatake);
             box-shadow: var(--shadow);
-            position: relative
+            position: relative;
+            touch-action: none
         }
 
         .clock-number {
@@ -1125,11 +1126,12 @@
                 <button class="tool-btn active" data-tool="pen" onclick="setTool('pen',this)" title="ペン">✏️</button>
                 <button class="tool-btn" data-tool="eraser" onclick="setTool('eraser',this)" title="けしゴム">🧹</button>
                 <button class="tool-btn" data-tool="stamp" onclick="setTool('stamp',this)" title="スタンプ">⭐</button>
+                <button class="tool-btn" data-tool="bucket" onclick="setTool('bucket',this)" title="バケツ">🪣</button>
             </div>
             <div class="tool-group">
-                <button class="tool-btn" onclick="setSize(4)" title="ほそい">・</button>
-                <button class="tool-btn active" onclick="setSize(8)" title="ふつう">●</button>
-                <button class="tool-btn" onclick="setSize(16)" title="ふとい">⬤</button>
+                <button class="tool-btn" data-size="4" onclick="setSize(4,this)" title="ほそい">・</button>
+                <button class="tool-btn active" data-size="8" onclick="setSize(8,this)" title="ふつう">●</button>
+                <button class="tool-btn" data-size="16" onclick="setSize(16,this)" title="ふとい">⬤</button>
             </div>
             <div class="tool-group">
                 <button class="tool-btn" onclick="clearCanvas()" title="ぜんぶけす">🗑️</button>
@@ -1309,6 +1311,7 @@
         }
         function getPos(e) { const r = e.target.getBoundingClientRect(); const scaleX = e.target.offsetWidth / r.width; return { x: (e.clientX - r.left) * scaleX, y: (e.clientY - r.top) * scaleX }; }
         function startDraw(e) {
+            if (tool === 'bucket') { const cv = document.getElementById('drawCanvas'); const cssW = parseInt(cv.style.width); const cssH = parseInt(cv.style.height); ctx.fillStyle = penColor; ctx.fillRect(0, 0, cssW, cssH); return; }
             if (tool === 'stamp') { const p = getPos(e); ctx.font = penSize * 3 + 'px serif'; ctx.fillText(currentStamp, p.x - penSize, p.y + penSize); return; }
             drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y);
         }
@@ -1319,7 +1322,7 @@
         }
         function stopDraw() { if (drawing) { drawing = false; state.oekakiCount++; if (state.oekakiCount % 10 === 0) addStamp(); saveState(); } }
         function setTool(t, btn) { tool = t; document.querySelectorAll('.tool-group .tool-btn[data-tool]').forEach(b => b.classList.remove('active')); btn.classList.add('active'); document.getElementById('stampBar').style.display = t === 'stamp' ? 'flex' : 'none'; }
-        function setSize(s) { penSize = s; }
+        function setSize(s, btn) { penSize = s; document.querySelectorAll('.tool-btn[data-size]').forEach(b => b.classList.remove('active')); if (btn) btn.classList.add('active'); }
         function clearCanvas() { const cv = document.getElementById('drawCanvas'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height); }
         function saveDrawing() { const cv = document.getElementById('drawCanvas'); const a = document.createElement('a'); a.download = (getPlayerName() || 'おえかき') + 'のえ.png'; a.href = cv.toDataURL(); a.click(); addStamp(); }
 
@@ -1423,6 +1426,7 @@
         }
         function onDrag(e) {
             if (!isDragging) return;
+            e.preventDefault();
             const face = document.getElementById('clockFace'); const r = face.getBoundingClientRect();
             const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
             let angle = Math.atan2(e.clientY - cy, e.clientX - cx) * 180 / Math.PI + 90;
@@ -1871,7 +1875,7 @@
                 if (isGuide) {
                     guidePixels++;
                     const dR = drawn[i], dG = drawn[i + 1], dB = drawn[i + 2];
-                    const isPink = dR > 180 && dB > 120 && dG < 160;
+                    const isPink = dR > 150 && dB > 80 && dG < 200 && (dR > dG || dB > dG);
                     if (isPink) coveredPixels++;
                 }
             }
@@ -1879,7 +1883,7 @@
             const rm = document.getElementById('mojiResult');
             const allChars = getMojiChars();
             const ch = allChars[mojiIndex];
-            if (coverage >= 0.12) {
+            if (coverage >= 0.05) {
                 rm.textContent = '🌟 すごい！「' + ch + '」にんじゅつ かんりょう！🌟';
                 rm.style.color = getComputedStyle(document.documentElement).getPropertyValue('--wakatake');
                 shurikenEffect(window.innerWidth / 2, window.innerHeight / 2);
